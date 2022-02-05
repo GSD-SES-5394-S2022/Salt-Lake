@@ -1,0 +1,218 @@
+---
+title: "Assignment 2"
+author: "Aijing Li"
+date: "2/4/2022"
+output: html_document
+---
+```{r}
+install.packages("ggthemes")
+install.packages("RColorBrewer")
+
+```
+
+```{r}
+library(tidycensus)
+library(sf)
+library(RColorBrewer)
+library(ggthemes)
+library(dplyr)
+```
+
+```{r}
+#getting census variable names
+area_vars_2019 <- load_variables(2019, "acs5")
+```
+
+```{r}
+#download census data
+vars <- c(total_hhs = 'B08203_001',
+          no_veh = 'B08203_002',
+          
+          hh_1person = 'B08201_007',
+          hh_2person = 'B08201_013',
+          hh_3person = 'B08201_019',
+          hh_4person_plus = 'B08201_025',
+          
+          inc_lt_10k = 'B19001_002',
+          inc_btw_10k_15k = 'B19001_003',
+          inc_btw_15k_20k = 'B19001_004',
+          inc_btw_20k_25k = 'B19001_005',
+          inc_btw_25k_30k = 'B19001_006',
+          inc_btw_30k_35k = 'B19001_007',
+          inc_btw_35k_40k = 'B19001_008',
+          inc_btw_40k_45k = 'B19001_009',
+          inc_btw_45k_50k = 'B19001_010',
+          inc_btw_50k_60k = 'B19001_011',
+          inc_btw_60k_75k = 'B19001_012',
+          inc_btw_75k_100k = 'B19001_013',
+          inc_btw_100k_125k = 'B19001_014',
+          inc_btw_125k_150k = 'B19001_015',
+          inc_btw_150k_200k = 'B19001_016',
+          inc_gt_200k = 'B19001_017'
+          )
+
+census <- get_acs(geography = 'tract',
+                 state = 'UT',
+                 county = c('Salt Lake', 'Tooele'),
+                 variables = vars,
+                 output = 'wide',
+                 geometry = TRUE)
+
+```
+```{r}
+census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+inc_btw_15k_20kE+inc_btw_20k_25kE+inc_btw_25k_30kE+inc_btw_30k_35kE)%>%
+        mutate(inc_quint_2 = inc_btw_35k_40kE + inc_btw_40k_45kE + inc_btw_45k_50kE + inc_btw_50k_60kE)%>%
+        mutate(inc_quint_3 = inc_btw_60k_75kE + inc_btw_75k_100kE + inc_btw_100k_125kE+inc_btw_125k_150kE+inc_btw_150k_200kE+inc_gt_200kE)%>%
+ select(GEOID, 
+         total_hhsE,
+         no_vehE,
+         hh_1personE,
+         hh_2personE,
+         hh_3personE,
+         hh_4person_plusE,
+         inc_quint_1,
+         inc_quint_2,
+         inc_quint_3)
+```
+
+```{r}
+
+library(tidyverse)
+
+lehd_blocks <- read_csv('https://lehd.ces.census.gov/data/lodes/LODES7/ut/wac/ut_wac_S000_JT00_2019.csv.gz') %>%
+  rename(total_emp = C000) %>%
+  mutate(basic_emp = CNS01+CNS02+CNS03+CNS04+CNS05+CNS06+CNS08+CNS09) %>%
+  rename(retail_emp = CNS07) %>%
+  mutate(service_emp = total_emp - basic_emp - retail_emp) %>%
+  select(w_geocode, total_emp, basic_emp, retail_emp, service_emp)
+```
+```{r}
+library(tidyverse)
+
+lehd_tracts <- lehd_blocks %>%
+  mutate(w_geocode = as.character(w_geocode)) %>%
+  mutate(GEOID = substr(w_geocode, 1, 11)) %>%
+  select(-w_geocode) %>%
+  group_by(GEOID) %>%
+  summarize(across(everything(), ~sum(.)))
+```
+
+```{r}
+zones <- left_join(census, lehd_tracts)
+
+```
+
+
+```{r}
+zone_boundaries <- zones %>%
+  select(GEOID, geometry)
+
+zone_data <- zones %>%
+  st_drop_geometry()
+```
+
+
+
+```{r}
+#
+zone_data %>%
+  pivot_longer(cols=c(total_hhsE,no_vehE,
+         inc_quint_1,
+         inc_quint_2,
+         inc_quint_3,
+          total_emp, basic_emp, retail_emp, service_emp),
+               names_to = "Variable",
+               values_to = "value") %>%
+  group_by(Variable) %>%
+  summarize(Average = mean(value, na.rm=TRUE),
+            `Standard deviation` = sd(value, na.rm=TRUE),
+            Median = median(value, median(value, na.rm=TRUE)))
+```
+```{r}
+total_hh_map <- ggplot(census) +
+  geom_sf(aes(fill = total_hhsE), color="NA")
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+total_hh_map + 
+theme_void(base_size = 8) +
+scale_fill_gradientn(colors = map_palette,  name = "Total number of households") 
+
+ggsave("images/total_hh_map.png",
+       height = 4.25, width = 6.5, units = "in")
+```
+
+```{r}
+no_veh_map <- ggplot(census) +
+  geom_sf(aes(fill = no_vehE), color="NA")
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+no_veh_map + 
+theme_void(base_size = 8) +
+scale_fill_gradientn(colors = map_palette,  name = "Total number of zero-vehicle households") 
+
+ggsave("no_veh_map.png",
+       height = 4.25, width = 6.5, units = "in")
+```
+```{r}
+total_emp_map <- ggplot(zones) +
+  geom_sf(aes(fill = total_emp), color="NA")
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+total_emp_map + 
+theme_void(base_size = 8) +
+scale_fill_gradientn(colors = map_palette,  name = "Total number of employees") 
+
+ggsave("total_emp_map .png",
+       height = 4.25, width = 6.5, units = "in")
+```
+
+```{r}
+basic_emp_map <- ggplot(zones) +
+  geom_sf(aes(fill = basic_emp), color="NA")
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+basic_emp_map + 
+theme_void(base_size = 8) +
+scale_fill_gradientn(colors = map_palette,  name = "Total number of basic employees") 
+
+ggsave("basic_emp_map.png",
+       height = 4.25, width = 6.5, units = "in")
+```
+
+
+```{r}
+retail_emp_map <- ggplot(zones) +
+  geom_sf(aes(fill = retail_emp), color="NA")
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+retail_emp_map + 
+theme_void(base_size = 8) +
+scale_fill_gradientn(colors = map_palette,  name = "Total number of retail employees") 
+
+ggsave("retail_emp_map.png",
+       height = 4.25, width = 6.5, units = "in")
+```
+```{r}
+service_emp_map <- ggplot(zones) +
+  geom_sf(aes(fill = service_emp), color="NA")
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+service_emp_map + 
+theme_void(base_size = 8) +
+scale_fill_gradientn(colors = map_palette,  name = "Total number of service employees") 
+
+ggsave("service_emp_map.png",
+       height = 4.25, width = 6.5, units = "in")
+```
+```{r}
+st_write(zone_boundaries, "zones/boundaries.geojson", append = FALSE)
+write_csv(zone_data, "existing/data/zone_data.csv", append = FALSE)
+
+```
+
