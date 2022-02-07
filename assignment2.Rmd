@@ -59,7 +59,6 @@ census <- get_acs(geography = 'tract',
                  geometry = TRUE)
 
 ```
-
 #Combine income variables to create three new income categories.
 
 ```{r}
@@ -91,7 +90,6 @@ lehd_blocks <- read_csv('https://lehd.ces.census.gov/data/lodes/LODES7/ut/wac/ut
   select(w_geocode, total_emp, basic_emp, retail_emp, service_emp)
 ```
 #Collapse block level employment data to tract level data for Utah.
-
 ```{r}
 library(tidyverse)
 
@@ -109,7 +107,6 @@ lehd_tracts <- lehd_blocks %>%
 zones <- left_join(census, lehd_tracts)
 
 ```
-
 #Separate zone geometry or boundaries from the zone dataset
 ```{r}
 zone_boundaries <- zones %>%
@@ -120,7 +117,6 @@ zone_data <- zones %>%
 ```
 
 #Summarize tract statistics
-
 ```{r}
 #
 zone_data %>%
@@ -138,7 +134,6 @@ zone_data %>%
 ```
 
 #Creating chloropleth maps for household, income and employment data
-
 ```{r}
 total_hh_map <- ggplot(census) +
   geom_sf(aes(fill = total_hhsE), color="NA")
@@ -222,7 +217,6 @@ ggsave("service_emp_map.png",
        height = 4.25, width = 6.5, units = "in")
 ```
 #Save and write datasets to a file.
-
 ```{r}
 st_write(zone_boundaries, "zones/boundaries.geojson", append = FALSE)
 write_csv(zone_data, "existing/data/zone_data.csv", append = FALSE)
