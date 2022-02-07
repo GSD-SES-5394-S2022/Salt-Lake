@@ -4,20 +4,25 @@ author: "Aijing Li, Charuvi Begwani"
 date: "2/4/2022"
 output: html_document
 ---
+
+
 ```{r}
 install.packages("ggthemes")
 install.packages("RColorBrewer")
 install.packages("leaflet")
 install.packages("htmlwidgets")
-
+install.packages("tibble")
+install.packages("treemapify")
 ```
 
 ```{r}
+library(tibble)
 library(tidycensus)
 library(sf)
 library(RColorBrewer)
 library(ggthemes)
 library(dplyr)
+library(treemapify)
 ```
 
 #Getting census variable names
@@ -61,7 +66,7 @@ census <- get_acs(geography = 'tract',
                  geometry = TRUE)
 
 ```
-#Combine income variables to create three new income categories.
+#Combine income variables to create three new income categories: below 35k, 35k-60k and above 60k.
 
 ```{r}
 census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+inc_btw_15k_20kE+inc_btw_20k_25kE+inc_btw_25k_30kE+inc_btw_30k_35kE)%>%
@@ -74,9 +79,27 @@ census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+inc_btw_1
          hh_2personE,
          hh_3personE,
          hh_4person_plusE,
+        
          inc_quint_1,
          inc_quint_2,
-         inc_quint_3)
+         inc_quint_3,
+        
+          inc_lt_10kE,
+          inc_btw_10k_15kE,
+          inc_btw_15k_20kE,
+          inc_btw_20k_25kE,
+          inc_btw_25k_30kE,
+          inc_btw_30k_35kE,
+          inc_btw_35k_40kE,
+          inc_btw_40k_45kE,
+          inc_btw_45k_50kE,
+          inc_btw_50k_60kE,
+          inc_btw_60k_75kE,
+          inc_btw_75k_100kE,
+          inc_btw_100k_125kE,
+          inc_btw_125k_150kE,
+          inc_btw_150k_200kE,
+          inc_gt_200kE)
 ```
 #Download block level employment data for Utah from the LEHD dataset.
 
@@ -91,6 +114,7 @@ lehd_blocks <- read_csv('https://lehd.ces.census.gov/data/lodes/LODES7/ut/wac/ut
   mutate(service_emp = total_emp - basic_emp - retail_emp) %>%
   select(w_geocode, total_emp, basic_emp, retail_emp, service_emp)
 ```
+
 #Collapse block level employment data to tract level data for Utah.
 ```{r}
 library(tidyverse)
@@ -102,6 +126,7 @@ lehd_tracts <- lehd_blocks %>%
   group_by(GEOID) %>%
   summarize(across(everything(), ~sum(.)))
 ```
+
 #Join tract level employment data for Utah state with population data for tracts within Salt Lake MSA boundary
 #for combined employment and population data for the MSA.
 
@@ -109,6 +134,7 @@ lehd_tracts <- lehd_blocks %>%
 zones <- left_join(census, lehd_tracts)
 
 ```
+
 #Separate zone geometry or boundaries from the zone dataset
 ```{r}
 zone_boundaries <- zones %>%
@@ -126,7 +152,8 @@ table <- zone_data %>%
          inc_quint_1,
          inc_quint_2,
          inc_quint_3,
-          total_emp, basic_emp, retail_emp, service_emp),
+          total_emp, basic_emp, retail_emp, service_emp,
+         hh_1personE, hh_2personE, hh_3personE, hh_4person_plusE),
                names_to = "Variable",
                values_to = "value") %>%
   group_by(Variable) %>%
@@ -166,6 +193,7 @@ scale_fill_gradientn(colors = map_palette,  name = "Total number of zero-vehicle
 ggsave("images/no_veh_map.png",
        height = 4.25, width = 6.5, units = "in")
 ```
+
 ```{r}
 total_emp_map <- ggplot(zones) +
   geom_sf(aes(fill = total_emp), color="NA")
@@ -221,6 +249,53 @@ scale_fill_gradientn(colors = map_palette,  name = "Total number of service empl
 ggsave("images/service_emp_map.png",
        height = 4.25, width = 6.5, units = "in")
 ```
+# Generate treemap diagrams for income and household size composition of study area
+```{r}
+income_buckets <- c(sum(census$inc_quint_1)/sum(census$total_hhsE),sum(census$inc_quint_2)/sum(census$total_hhsE),sum(census$inc_quint_3)/sum(census$total_hhsE)) 
+income_tibble <- tibble(bucket = c("Below 35k",
+                               "35k - 60k",
+                               "Above 60k"),
+
+                     Percentage = as.numeric(income_buckets*100)
+                     )
+
+ggplot(income_tibble, aes(area = Percentage, fill= bucket)) +
+  geom_treemap(show.legend = FALSE) +
+  geom_treemap_text(aes(label = paste(bucket, "\n",
+                                      prettyNum(Percentage, digits = 0),
+                                      "%",sep = "")), 
+                        color = "white") +
+  scale_fill_grey()
+
+ggsave("images/treemap_income.png",
+       height = 4.25, width = 6.5, units = "in")
+```
+
+
+```{r}
+hhsize_buckets <- c(sum(census$hh_1person)/sum(census$total_hhsE),sum(census$hh_2person)/sum(census$total_hhsE),sum(census$hh_3person)/sum(census$total_hhsE),sum(census$hh_4person_plus)/sum(census$total_hhsE)) 
+hhsize_tibble <- tibble(bucket = c("Households with 1 person",
+                               "Households with 2 person",
+                               "Households with 3 person",
+                               "Households with 4 person and plus"),
+
+                     Percentage = as.numeric(hhsize_buckets*100)
+                     )
+
+ggplot(hhsize_tibble, aes(area = Percentage, fill= bucket)) +
+  geom_treemap(show.legend = FALSE) +
+  geom_treemap_text(aes(label = paste(bucket, "\n",
+                                      prettyNum(Percentage, digits = 0),
+                                      "%",sep = "")), 
+                        color = "white") +
+  scale_fill_grey()
+
+ggsave("images/treemap_hhsize.png",
+       height = 4.25, width = 6.5, units = "in")
+```
+
+
+
 #Save and write datasets to a file.
 ```{r}
 st_write(zone_boundaries, "zones/boundaries.geojson", append = FALSE)
@@ -241,4 +316,6 @@ map <- leaflet(census) %>%
 
 saveWidget(map, file = 'zones/boundaries.html')
 ```
+
+
 
