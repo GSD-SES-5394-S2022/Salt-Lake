@@ -1,6 +1,6 @@
 ---
 title: "Assignment 2"
-author: "Aijing Li"
+author: "Aijing Li, Charuvi Begwani"
 date: "2/4/2022"
 output: html_document
 ---
