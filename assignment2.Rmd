@@ -19,7 +19,6 @@ library(dplyr)
 ```
 
 #Getting census variable names
-
 ```{r}
 area_vars_2019 <- load_variables(2019, "acs5")
 ```
@@ -112,7 +111,6 @@ zones <- left_join(census, lehd_tracts)
 ```
 
 #Separate zone geometry or boundaries from the zone dataset
-
 ```{r}
 zone_boundaries <- zones %>%
   select(GEOID, geometry)
