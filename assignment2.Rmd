@@ -24,7 +24,6 @@ library(dplyr)
 area_vars_2019 <- load_variables(2019, "acs5")
 ```
 #Download census data.
-
 ```{r}
 
 vars <- c(total_hhs = 'B08203_001',
