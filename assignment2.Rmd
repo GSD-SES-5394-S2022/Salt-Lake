@@ -18,15 +18,15 @@ library(ggthemes)
 library(dplyr)
 ```
 
-```{r}
-
 #Getting census variable names
 
+```{r}
 area_vars_2019 <- load_variables(2019, "acs5")
 ```
+#Download census data.
 
 ```{r}
-#Download census data
+
 vars <- c(total_hhs = 'B08203_001',
           no_veh = 'B08203_002',
           
