@@ -1,12 +1,14 @@
 ---
 title: "Assignment 2"
-author: "Aijing Li"
+author: "Aijing Li, Charuvi Begwani"
 date: "2/4/2022"
 output: html_document
 ---
 ```{r}
 install.packages("ggthemes")
 install.packages("RColorBrewer")
+install.packages("leaflet")
+install.packages("htmlwidgets")
 
 ```
 
@@ -18,13 +20,13 @@ library(ggthemes)
 library(dplyr)
 ```
 
+#Getting census variable names
 ```{r}
-#getting census variable names
 area_vars_2019 <- load_variables(2019, "acs5")
 ```
-
+#Download census data.
 ```{r}
-#download census data
+
 vars <- c(total_hhs = 'B08203_001',
           no_veh = 'B08203_002',
           
@@ -59,6 +61,8 @@ census <- get_acs(geography = 'tract',
                  geometry = TRUE)
 
 ```
+#Combine income variables to create three new income categories.
+
 ```{r}
 census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+inc_btw_15k_20kE+inc_btw_20k_25kE+inc_btw_25k_30kE+inc_btw_30k_35kE)%>%
         mutate(inc_quint_2 = inc_btw_35k_40kE + inc_btw_40k_45kE + inc_btw_45k_50kE + inc_btw_50k_60kE)%>%
@@ -74,6 +78,7 @@ census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+inc_btw_1
          inc_quint_2,
          inc_quint_3)
 ```
+#Download block level employment data for Utah from the LEHD dataset.
 
 ```{r}
 
@@ -86,6 +91,7 @@ lehd_blocks <- read_csv('https://lehd.ces.census.gov/data/lodes/LODES7/ut/wac/ut
   mutate(service_emp = total_emp - basic_emp - retail_emp) %>%
   select(w_geocode, total_emp, basic_emp, retail_emp, service_emp)
 ```
+#Collapse block level employment data to tract level data for Utah.
 ```{r}
 library(tidyverse)
 
@@ -96,13 +102,14 @@ lehd_tracts <- lehd_blocks %>%
   group_by(GEOID) %>%
   summarize(across(everything(), ~sum(.)))
 ```
+#Join tract level employment data for Utah state with population data for tracts within Salt Lake MSA boundary
+#for combined employment and population data for the MSA.
 
 ```{r}
 zones <- left_join(census, lehd_tracts)
 
 ```
-
-
+#Separate zone geometry or boundaries from the zone dataset
 ```{r}
 zone_boundaries <- zones %>%
   select(GEOID, geometry)
@@ -111,11 +118,10 @@ zone_data <- zones %>%
   st_drop_geometry()
 ```
 
-
-
+#Summarize tract statistics
 ```{r}
 #
-zone_data %>%
+table <- zone_data %>%
   pivot_longer(cols=c(total_hhsE,no_vehE,
          inc_quint_1,
          inc_quint_2,
@@ -127,7 +133,12 @@ zone_data %>%
   summarize(Average = mean(value, na.rm=TRUE),
             `Standard deviation` = sd(value, na.rm=TRUE),
             Median = median(value, median(value, na.rm=TRUE)))
+
+write_csv(zone_data, "images/zone_summary.csv", append = FALSE)
+
 ```
+
+#Creating chloropleth maps for household, income and employment data
 ```{r}
 total_hh_map <- ggplot(census) +
   geom_sf(aes(fill = total_hhsE), color="NA")
@@ -152,7 +163,7 @@ no_veh_map +
 theme_void(base_size = 8) +
 scale_fill_gradientn(colors = map_palette,  name = "Total number of zero-vehicle households") 
 
-ggsave("no_veh_map.png",
+ggsave("images/no_veh_map.png",
        height = 4.25, width = 6.5, units = "in")
 ```
 ```{r}
@@ -165,7 +176,7 @@ total_emp_map +
 theme_void(base_size = 8) +
 scale_fill_gradientn(colors = map_palette,  name = "Total number of employees") 
 
-ggsave("total_emp_map .png",
+ggsave("images/total_emp_map .png",
        height = 4.25, width = 6.5, units = "in")
 ```
 
@@ -179,7 +190,7 @@ basic_emp_map +
 theme_void(base_size = 8) +
 scale_fill_gradientn(colors = map_palette,  name = "Total number of basic employees") 
 
-ggsave("basic_emp_map.png",
+ggsave("images/basic_emp_map.png",
        height = 4.25, width = 6.5, units = "in")
 ```
 
@@ -194,7 +205,7 @@ retail_emp_map +
 theme_void(base_size = 8) +
 scale_fill_gradientn(colors = map_palette,  name = "Total number of retail employees") 
 
-ggsave("retail_emp_map.png",
+ggsave("images/retail_emp_map.png",
        height = 4.25, width = 6.5, units = "in")
 ```
 ```{r}
@@ -207,12 +218,27 @@ service_emp_map +
 theme_void(base_size = 8) +
 scale_fill_gradientn(colors = map_palette,  name = "Total number of service employees") 
 
-ggsave("service_emp_map.png",
+ggsave("images/service_emp_map.png",
        height = 4.25, width = 6.5, units = "in")
 ```
+#Save and write datasets to a file.
 ```{r}
 st_write(zone_boundaries, "zones/boundaries.geojson", append = FALSE)
 write_csv(zone_data, "existing/data/zone_data.csv", append = FALSE)
+write_csv(zone_data, "alternative/data/zone_data.csv", append = FALSE)
+```
+```{r}
+library(leaflet)
+library(htmlwidgets)
 
+map <- leaflet(census) %>%
+  addProviderTiles("Stamen.TonerLite") %>%
+  addPolygons(popup = ~GEOID,
+              weight = 1,
+              opacity = 1,
+              highlightOptions =
+                highlightOptions(fillColor = "red"))
+
+saveWidget(map, file = 'zones/boundaries.html')
 ```
 
