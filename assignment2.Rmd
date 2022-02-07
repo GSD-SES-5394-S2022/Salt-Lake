@@ -19,7 +19,9 @@ library(dplyr)
 ```
 
 ```{r}
+
 #Getting census variable names
+
 area_vars_2019 <- load_variables(2019, "acs5")
 ```
 
@@ -59,6 +61,7 @@ census <- get_acs(geography = 'tract',
                  geometry = TRUE)
 
 ```
+
 #Combine income variables to create three new income categories.
 
 ```{r}
