@@ -117,7 +117,18 @@ census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+inc_btw_1
           inc_gt_200kE)
 ```
 #Download block level employment data for Utah from the LEHD dataset.
-
+For this exercise, we first retreived employment data from the
+Longitudinal Employer-Household Dynamica (LEHD) dataset. 
+We pulled census block-level data for the state of Utah from the 
+Workplace Characteristics section for 2019. 
+Variables we pulled include:
+- Total employment or number of workers
+- Basic employment which we added (includes Agriculture, Forestry,
+Fishing, and Hunting (CNS01), Mining and extraction (CNS02), Utilities
+(CNS03), Construction (CNS04), Manufacturing (CNS05), Wholesale
+trade (CNS06) and Transportation and warehousing (CNS06).
+- Retail employment
+- Service employment (total - basic - retail)
 
 ```{r}
 
@@ -132,6 +143,8 @@ lehd_blocks <- read_csv('https://lehd.ces.census.gov/data/lodes/LODES7/ut/wac/ut
 ```
 
 #Collapse block level employment data to tract level data for Utah.
+We then collapse the block level data to determined 
+employment characteristics at the tract level.
 ```{r}
 library(tidyverse)
 
@@ -143,8 +156,11 @@ lehd_tracts <- lehd_blocks %>%
   summarize(across(everything(), ~sum(.)))
 ```
 
-#Join tract level employment data for Utah state with population data for tracts within Salt Lake MSA boundary
-#for combined employment and population data for the MSA.
+#Join tract level employment data with population data 
+We then combine employment data for Utah state with the 
+previously compiled population data tracts within Salt Lake MSA boundary. 
+This filters down the state level employment data to data 
+for our two selected counties in the Salt Lake MSA area
 
 ```{r}
 zones <- left_join(census, lehd_tracts)
