@@ -26,10 +26,19 @@ library(treemapify)
 ```
 
 #Getting census variable names
+We first decide to retrieve census data on population characteristics 
+through the American Commmunity Survey 2019, using the tidycensus package.
+
 ```{r}
 area_vars_2019 <- load_variables(2019, "acs5")
 ```
 #Download census data.
+We then download census data for the Salt Lake Metropolitan Statistical Area 
+for selected variables that are relevant to this analysis, 
+including household size, vehicle ownership and household income. 
+This data is available at the census block level, and we retrieve it for 
+Salt Lake and Tooele Counties that constitute the Salt Lake MSA.
+
 ```{r}
 
 vars <- c(total_hhs = 'B08203_001',
@@ -66,7 +75,13 @@ census <- get_acs(geography = 'tract',
                  geometry = TRUE)
 
 ```
-#Combine income variables to create three new income categories: below 35k, 35k-60k and above 60k.
+#Combine income variables to create three new income categories.
+We had retreived census data on the total number of households earning incomes 
+in various income categories at the census block level. 
+We then collapsed and determined the tract level data for that 
+and combined all the income categories to form three broad categories 
+These are under $35,000, between $35,000 and $60,000
+and over $60,000.
 
 ```{r}
 census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+inc_btw_15k_20kE+inc_btw_20k_25kE+inc_btw_25k_30kE+inc_btw_30k_35kE)%>%
@@ -102,6 +117,7 @@ census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+inc_btw_1
           inc_gt_200kE)
 ```
 #Download block level employment data for Utah from the LEHD dataset.
+
 
 ```{r}
 
