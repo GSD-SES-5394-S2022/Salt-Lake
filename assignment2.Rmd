@@ -84,9 +84,12 @@ These are under $35,000, between $35,000 and $60,000
 and over $60,000.
 
 ```{r}
-census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+inc_btw_15k_20kE+inc_btw_20k_25kE+inc_btw_25k_30kE+inc_btw_30k_35kE)%>%
-        mutate(inc_quint_2 = inc_btw_35k_40kE + inc_btw_40k_45kE + inc_btw_45k_50kE + inc_btw_50k_60kE)%>%
-        mutate(inc_quint_3 = inc_btw_60k_75kE + inc_btw_75k_100kE + inc_btw_100k_125kE+inc_btw_125k_150kE+inc_btw_150k_200kE+inc_gt_200kE)%>%
+census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+
+          inc_btw_15k_20kE+inc_btw_20k_25kE+inc_btw_25k_30kE+inc_btw_30k_35kE)%>%
+        mutate(inc_quint_2 = inc_btw_35k_40kE + inc_btw_40k_45kE 
+        + inc_btw_45k_50kE + inc_btw_50k_60kE)%>%
+        mutate(inc_quint_3 = inc_btw_60k_75kE + inc_btw_75k_100kE + 
+        inc_btw_100k_125kE+inc_btw_125k_150kE+inc_btw_150k_200kE+inc_gt_200kE)%>%
  select(GEOID, 
          total_hhsE,
          no_vehE,
@@ -283,7 +286,8 @@ ggsave("images/service_emp_map.png",
 ```
 # Generate treemap diagrams for income and household size composition of study area
 ```{r}
-income_buckets <- c(sum(census$inc_quint_1)/sum(census$total_hhsE),sum(census$inc_quint_2)/sum(census$total_hhsE),sum(census$inc_quint_3)/sum(census$total_hhsE)) 
+income_buckets <- c(sum(census$inc_quint_1)/sum(census$total_hhsE),
+sum(census$inc_quint_2)/sum(census$total_hhsE),sum(census$inc_quint_3)/sum(census$total_hhsE)) 
 income_tibble <- tibble(bucket = c("Below 35k",
                                "35k - 60k",
                                "Above 60k"),
