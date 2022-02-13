@@ -7,12 +7,13 @@ output: html_document
 
 
 ```{r}
-install.packages("ggthemes")
-install.packages("RColorBrewer")
-install.packages("leaflet")
-install.packages("htmlwidgets")
-install.packages("tibble")
-install.packages("treemapify")
+# install.packages("ggthemes")
+# install.packages("RColorBrewer")
+# install.packages("leaflet")
+# install.packages("htmlwidgets")
+# install.packages("tibble")
+# install.packages("treemapify")
+# install.packages("lwgeom")
 ```
 
 ```{r}
@@ -25,7 +26,9 @@ library(dplyr)
 library(treemapify)
 library(tidyverse)
 library(knitr)
+
 ```
+
 
 
 # Introduction 
@@ -337,11 +340,17 @@ ggsave("images/service_emp_map.png",
 ```
 # Generate treemap diagrams for income and household size composition of study area
 ```{r}
-income_buckets <- c(sum(census$inc_quint_1)/sum(census$total_hhsE),
-sum(census$inc_quint_2)/sum(census$total_hhsE),sum(census$inc_quint_3)/sum(census$total_hhsE)) 
-income_tibble <- tibble(bucket = c("Below 35k",
-                               "35k - 60k",
-                               "Above 60k"),
+income_buckets <- c(sum(census$inc_quint_20)/sum(census$total_hhsE),
+                    sum(census$inc_quint_35)/sum(census$total_hhsE),
+                    sum(census$inc_quint_60)/sum(census$total_hhsE),
+                    sum(census$inc_quint_80)/sum(census$total_hhsE),
+                    sum(census$inc_quint_100)/sum(census$total_hhsE)                    
+                    ) 
+income_tibble <- tibble(bucket = c("Quantile 20%: Below 35k",
+                               "Quantile 35%: 35-60k",
+                               "Quantile 60%: 60-100k",
+                               "Quantile 80%: 100-150k",
+                               "Quantile 100%: Above 150k"),
 
                      Percentage = as.numeric(income_buckets*100)
                      )
@@ -360,7 +369,7 @@ ggsave("images/treemap_income.png",
 
 
 ```{r}
-hhsize_buckets <- c(sum(census$hh_1person)/sum(census$total_hhsE),sum(census$hh_2person)/sum(census$total_hhsE),sum(census$hh_3person)/sum(census$total_hhsE),sum(census$hh_4person_plus)/sum(census$total_hhsE)) 
+hhsize_buckets <- c(sum(census$hh_1personE)/sum(census$total_hhsE),sum(census$hh_2personE)/sum(census$total_hhsE),sum(census$hh_3personE)/sum(census$total_hhsE),sum(census$hh_4person_plusE)/sum(census$total_hhsE)) 
 hhsize_tibble <- tibble(bucket = c("Households with 1 person",
                                "Households with 2 person",
                                "Households with 3 person",
@@ -381,6 +390,22 @@ ggsave("images/treemap_hhsize.png",
        height = 4.25, width = 6.5, units = "in")
 ```
 
+# Create Dot-Density Map
+```{r}
+library(sf)
+
+hh_1person_pts <- st_sample(census, 
+                            size = ceiling(census$hh_1personE/100))
+
+hh_2person_pts <- st_sample(census, 
+                            size = ceiling(census$hh_2personE/100))
+
+hh_3person_pts <- st_sample(census, 
+                            size = ceiling(census$hh_3personE/100))
+
+hh_4person_pts <- st_sample(census, 
+                            size = ceiling(census$hh_4person_plusE/100))
+```
 
 
 #Save and write datasets to a file.
