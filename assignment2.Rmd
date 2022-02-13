@@ -25,6 +25,12 @@ library(dplyr)
 library(treemapify)
 ```
 
+
+# Introduction 
+Main Street is one of the key commercial streets in Salt Lake City with banks, major retailers and high pedestrian footfall. In a few weeks in September and October 2020, a block on the Main Street was shut down for cars on the weekends (Thursday - Saturday) from 6-10 p.m. Referred to as the Downtown SLC Open Streets program, this was done in an attempt to revitalize the downtown area and encourage patrons. The new spaces created, and outdoor dining and retail services initiated as a result of social distancing requirements due to the pandemic, were leveraged to “expand options for pedestrians” and benefit on-street businesses. In response to the success of this initiative, it was repeated the next year in April with the concerned stretch expanded to include South Temple to 400 South. As before, this was an attempt to invite pedestrians with some ongoing activities and support local businesses. This news article reports that Downtown Alliance, the group leading this, is considering asking city to make it a permanent, year-round “pedestrian zone.” 
+
+We are interested in modelling Main Street pedestrianization and closure for cars to explore how impactful the plan for a permanent pedestrian zone may be. We think this is especially relevant since Open Streets have been implemented all across the country, post-pandemic, and many other cities are also considering similar pedestrianization projects with the success of outdoor dining and retail activities.
+
 #Getting census variable names
 We first decide to retrieve census data on population characteristics 
 through the American Commmunity Survey 2019, using the tidycensus package.
@@ -301,7 +307,7 @@ ggplot(income_tibble, aes(area = Percentage, fill= bucket)) +
                                       prettyNum(Percentage, digits = 0),
                                       "%",sep = "")), 
                         color = "white") +
-  scale_fill_grey()
+  scale_fill_brewer(palette = "PuBuGn")
 
 ggsave("images/treemap_income.png",
        height = 4.25, width = 6.5, units = "in")
@@ -324,7 +330,7 @@ ggplot(hhsize_tibble, aes(area = Percentage, fill= bucket)) +
                                       prettyNum(Percentage, digits = 0),
                                       "%",sep = "")), 
                         color = "white") +
-  scale_fill_grey()
+  scale_fill_brewer(palette = "PuBuGn")
 
 ggsave("images/treemap_hhsize.png",
        height = 4.25, width = 6.5, units = "in")
