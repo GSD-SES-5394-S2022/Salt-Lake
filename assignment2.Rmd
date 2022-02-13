@@ -23,6 +23,8 @@ library(RColorBrewer)
 library(ggthemes)
 library(dplyr)
 library(treemapify)
+library(tidyverse)
+library(knitr)
 ```
 
 
@@ -49,6 +51,7 @@ Salt Lake and Tooele Counties that constitute the Salt Lake MSA.
 
 vars <- c(total_hhs = 'B08203_001',
           no_veh = 'B08203_002',
+          avg_hh_size = "B25010_001",
           
           hh_1person = 'B08201_007',
           hh_2person = 'B08201_013',
@@ -90,23 +93,28 @@ These are under $35,000, between $35,000 and $60,000
 and over $60,000.
 
 ```{r}
-census <- census %>% mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+
+census <- census %>% 
+  mutate(inc_quint_20 = inc_lt_10kE+inc_btw_10k_15kE+
           inc_btw_15k_20kE+inc_btw_20k_25kE+inc_btw_25k_30kE+inc_btw_30k_35kE)%>%
-        mutate(inc_quint_2 = inc_btw_35k_40kE + inc_btw_40k_45kE 
+  mutate(inc_quint_35 = inc_btw_35k_40kE + inc_btw_40k_45kE 
         + inc_btw_45k_50kE + inc_btw_50k_60kE)%>%
-        mutate(inc_quint_3 = inc_btw_60k_75kE + inc_btw_75k_100kE + 
-        inc_btw_100k_125kE+inc_btw_125k_150kE+inc_btw_150k_200kE+inc_gt_200kE)%>%
- select(GEOID, 
+  mutate(inc_quint_60 = inc_btw_60k_75kE + inc_btw_75k_100kE)%>%
+  mutate(inc_quint_80 = inc_btw_100k_125kE+inc_btw_125k_150kE)%>%
+  mutate(inc_quint_100 = inc_btw_150k_200kE+inc_gt_200kE)%>%
+select(GEOID, 
          total_hhsE,
          no_vehE,
+         avg_hh_sizeE,
          hh_1personE,
          hh_2personE,
          hh_3personE,
          hh_4person_plusE,
         
-         inc_quint_1,
-         inc_quint_2,
-         inc_quint_3,
+         inc_quint_20,
+         inc_quint_35,
+         inc_quint_60,
+         inc_quint_80,
+         inc_quint_100,
         
           inc_lt_10kE,
           inc_btw_10k_15kE,
@@ -190,9 +198,11 @@ zone_data <- zones %>%
 #
 table <- zone_data %>%
   pivot_longer(cols=c(total_hhsE,no_vehE,
-         inc_quint_1,
-         inc_quint_2,
-         inc_quint_3,
+         inc_quint_20,
+         inc_quint_35,
+         inc_quint_60,
+         inc_quint_80,
+         inc_quint_100,
           total_emp, basic_emp, retail_emp, service_emp,
          hh_1personE, hh_2personE, hh_3personE, hh_4person_plusE),
                names_to = "Variable",
@@ -204,6 +214,41 @@ table <- zone_data %>%
 
 write_csv(zone_data, "images/zone_summary.csv", append = FALSE)
 
+```
+
+# Regional Data
+```{r}
+vars <- c(inc_lt_10k = 'B19001_002',
+          inc_btw_10k_15k = 'B19001_003',
+          inc_btw_15k_20k = 'B19001_004',
+          inc_btw_20k_25k = 'B19001_005',
+          inc_btw_25k_30k = 'B19001_006',
+          inc_btw_30k_35k = 'B19001_007',
+          inc_btw_35k_40k = 'B19001_008',
+          inc_btw_40k_45k = 'B19001_008',
+          inc_btw_45k_50k = 'B19001_010',
+          inc_btw_50k_60k = 'B19001_011',
+          inc_btw_60k_75k = 'B19001_012',
+          inc_btw_75k_100k = 'B19001_013',
+          inc_btw_100k_125k = 'B19001_014',
+          inc_btw_125k_150k = 'B19001_015',
+          inc_btw_150k_200k = 'B19001_016',
+          inc_gt_200k = 'B19001_017')
+
+
+
+region_inc <- get_acs(
+  geography = "metropolitan statistical area/micropolitan statistical area",
+  variables = vars,
+  summary_var = 'B19001_001',
+  geometry = FALSE) %>%
+  filter(GEOID == "41620") %>%
+  mutate(pct = estimate / summary_est) %>%
+  mutate(cumul_pct = cumsum(pct)) %>%
+  select(variable, cumul_pct)
+```
+```{r}
+kable(region_inc, digits=2)
 ```
 
 #Creating chloropleth maps for household, income and employment data
@@ -343,6 +388,7 @@ ggsave("images/treemap_hhsize.png",
 st_write(zone_boundaries, "zones/boundaries.geojson", append = FALSE)
 write_csv(zone_data, "existing/data/zone_data.csv", append = FALSE)
 write_csv(zone_data, "alternative/data/zone_data.csv", append = FALSE)
+write_csv(region_inc, "existing/data/regional_income_quintile.csv", append = FALSE)
 ```
 ```{r}
 library(leaflet)
