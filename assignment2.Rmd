@@ -431,7 +431,7 @@ ggplot(census) +
   geom_sf(data = hh_size_pts, 
           aes(color = hh_size), 
           alpha = 0.3,
-          size = 0.1) +
+          size = 0.2) +
   scale_color_brewer("Household size\n(each points represents\n100 households)",
                      palette = "Set1") +
   theme_void()  +
