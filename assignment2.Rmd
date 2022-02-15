@@ -74,7 +74,7 @@ census <- get_acs(geography = 'tract',
 
 ```
 #Combine income variables to create three new income categories.
-We had retreived census data on the total number of households earning incomes in various income categories at the census block level. We then collapsed and determined the tract level data for that and combined all the income categories to form five broad categories based on the regional quintiles at 20%, 35%, 60% and 80% levels. These are under $35,000; $35,000 - $60,000; $60,000 - $100,000; $100,000 - $150,000; and $150,000 - $200,000.
+We had retreived census data on the total number of households earning incomes in various income categories at the census block level. We then collapsed and determined the tract level data for that and combined all the income categories to form five broad categories based on the regional quintiles at 20%, 35%, 60% and 80% levels. These are under 35,000; 35,000 - 60,000; 60,000 - 100,000; 100,000 - 150,000; and 150,000 - $200,000.
 
 ```{r}
 census <- census %>% 
@@ -358,11 +358,11 @@ ggplot(income_tibble, aes(area = Percentage, fill= bucket)) +
   geom_treemap_text(aes(label = paste(bucket, "\n",
                                       prettyNum(Percentage, digits = 0),
                                       "%",sep = "")), 
-                        color = "white") +
+                        color = "black") +
   scale_fill_brewer(palette = "PuBuGn")
 
 ggsave("images/treemap_income.png",
-      width = 417.67, height = 200, units = "mm",dpi = 300)
+      width = 20, height = 9, units = "cm",dpi = 300)
 ```
 
 
@@ -381,11 +381,11 @@ ggplot(hhsize_tibble, aes(area = Percentage, fill= bucket)) +
   geom_treemap_text(aes(label = paste(bucket, "\n",
                                       prettyNum(Percentage, digits = 0),
                                       "%",sep = "")), 
-                        color = "white") +
+                        color = "black") +
   scale_fill_brewer(palette = "PuBuGn")
 
 ggsave("images/treemap_hhsize.png",
-       width = 417.67, height = 200, units = "mm",dpi = 300)
+       width = 20, height = 9, units = "cm",dpi = 300)
 ```
 
 # Create Dot-Density Map
@@ -403,6 +403,93 @@ hh_3person_pts <- st_sample(census,
 
 hh_4person_pts <- st_sample(census, 
                             size = ceiling(census$hh_4person_plusE/100))
+```
+
+```{r}
+hh_1person_df <- tibble(hh_size = rep("1 person", 
+                                      length(hh_1person_pts))) %>%
+  st_sf(geom = hh_1person_pts)
+                        
+hh_2person_df <- tibble(hh_size = rep("2 people", 
+                                      length(hh_2person_pts))) %>%
+  st_sf(geom = hh_2person_pts)
+ 
+hh_3person_df <- tibble(hh_size = rep("3 people", 
+                                      length(hh_3person_pts))) %>%
+  st_sf(geom = hh_3person_pts)
+
+hh_4person_df <- tibble(hh_size = rep("4 or more people", 
+                                      length(hh_4person_pts))) %>%
+  st_sf(geom = hh_4person_pts)
+
+hh_size_pts <- rbind(hh_1person_df, hh_2person_df, hh_3person_df, hh_4person_df)
+```
+
+```{r}
+ggplot(census) + 
+  geom_sf(color = "white") +
+  geom_sf(data = hh_size_pts, 
+          aes(color = hh_size), 
+          alpha = 0.3,
+          size = 0.1) +
+  scale_color_brewer("Household size\n(each points represents\n100 households)",
+                     palette = "Set1") +
+  theme_void()  +
+  guides(color = guide_legend(override.aes = list(size=5, alpha = 0.6)))
+```
+```{r}
+inc_quint_20_pts <- st_sample(census, 
+                            size = ceiling(census$inc_quint_20/100))
+
+inc_quint_35_pts <- st_sample(census, 
+                            size = ceiling(census$inc_quint_35/100))
+
+inc_quint_60_pts <- st_sample(census, 
+                            size = ceiling(census$inc_quint_60/100))
+
+inc_quint_80_pts <- st_sample(census, 
+                            size = ceiling(census$inc_quint_80/100))
+
+inc_quint_100_pts <- st_sample(census, 
+                            size = ceiling(census$inc_quint_100/100))
+```
+
+
+```{r}
+inc_quint_20_df <- tibble(hh_size = rep("Under 35,000 ", 
+                                      length(inc_quint_20_pts))) %>%
+  st_sf(geom = inc_quint_20_pts)
+                        
+inc_quint_35_df <- tibble(hh_size = rep("35,000 - 60,000", 
+                                      length(inc_quint_35_pts))) %>%
+  st_sf(geom = inc_quint_35_pts)
+ 
+inc_quint_60_df <- tibble(hh_size = rep("60,000 - 100,000", 
+                                      length(inc_quint_60_pts))) %>%
+  st_sf(geom = inc_quint_60_pts)
+
+inc_quint_80_df <- tibble(hh_size = rep("100,000 - 150,000", 
+                                      length(inc_quint_80_pts))) %>%
+  st_sf(geom = inc_quint_80_pts)
+
+inc_quint_100_df <- tibble(hh_size = rep("150,000 - $200,000", 
+                                      length(inc_quint_100_pts))) %>%
+  st_sf(geom = inc_quint_100_pts)
+
+inc_quint_pts <- rbind(inc_quint_20_df, inc_quint_35_df, inc_quint_60_df, inc_quint_80_df, inc_quint_100_df)
+```
+
+```{r}
+ggplot(census) + 
+  geom_sf(color = "white") +
+  geom_sf(data = inc_quint_pts, 
+          aes(color = inc_buckets), 
+          alpha = 0.3,
+          size = 0.1) +
+  scale_color_brewer("Household income\n(each points represents\n100 households)",
+                     palette = "Set1") +
+  theme_void()  +
+  guides(color = guide_legend(override.aes = list(size=5, alpha = 0.6)))
 ```
 
 
