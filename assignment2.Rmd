@@ -6,7 +6,6 @@ output: html_document
 ---
 
 
-
 ```{r,warning=FALSE,message=FALSE}
 library(tibble)
 library(tidycensus)
@@ -17,7 +16,7 @@ library(dplyr)
 library(treemapify)
 library(tidyverse)
 library(knitr)
-
+library(units)
 
 ```
 
@@ -252,82 +251,96 @@ kable(region_inc, digits=2)
 
 
 
-# Calculate Area
+# Calculate Area & Density Variables
 ```{r}
-# census <- census %>%
-#   mutate(tract_area = st_area(geometry))
+census <- census %>%
+  mutate(tract_area = st_area(geometry)) %>%
+  mutate(tract_area = set_units(tract_area, "mi2")) 
 ```
+
+```{r}
+zones <- zones %>% 
+  mutate(total_hh_density = total_hhsE/census$tract_area)%>% 
+  mutate(no_veh_density = no_vehE/census$tract_area)%>% 
+  mutate(total_emp_density = total_emp/census$tract_area)%>% 
+  mutate(basic_emp_density = basic_emp/census$tract_area)%>% 
+  mutate(service_emp_density = service_emp/census$tract_area)%>% 
+  mutate(retail_emp_density = retail_emp/census$tract_area)
+```
+
+
+
 
 #Creating chloropleth maps for household, income and employment data
 ```{r}
-total_hh_map <- ggplot(census) +
-  geom_sf(aes(fill = total_hhsE), color="NA")
+total_hh_map <- ggplot(zones) +
+  geom_sf(aes(fill = as.numeric(total_hh_density)), color="NA")
 
 map_palette <- brewer.pal(5, "PuBuGn")
 
 total_hh_map + 
-theme_void(base_size = 8) +
-scale_fill_gradientn(colors = map_palette,  name = "Total number of households") 
+theme_void(base_size = 11) +
+scale_fill_gradientn(colors = map_palette,  name = "Density of households/mile^2") 
 
 ggsave("images/total_hh_map.png",
-       width = 313.1, units = "px",dpi = 300)
+       width = 417.67, height = 200, units = "mm",dpi = 300)
 ```
 
 ```{r}
-no_veh_map <- ggplot(census) +
-  geom_sf(aes(fill = no_vehE), color="NA")
+no_veh_map <- ggplot(zones) +
+  geom_sf(aes(fill = as.numeric(no_veh_density)), color="NA")
 
 map_palette <- brewer.pal(5, "PuBuGn")
 
 no_veh_map + 
-theme_void(base_size = 8) +
-scale_fill_gradientn(colors = map_palette,  name = "Total number of zero-vehicle households") 
+theme_void(base_size = 11) +
+scale_fill_gradientn(colors = map_palette,  name = "Density of zero-vehicle\nhouseholds/mile^2") 
 
 ggsave("images/no_veh_map.png",
-       height = 4.25, width = 6.5, units = "in")
+       width = 417.67, height = 200, units = "mm",dpi = 300)
 ```
 
 ```{r}
 total_emp_map <- ggplot(zones) +
-  geom_sf(aes(fill = total_emp), color="NA")
+  geom_sf(aes(fill = as.numeric(total_emp_density)), color="NA")
 
 map_palette <- brewer.pal(5, "PuBuGn")
 
 total_emp_map + 
-theme_void(base_size = 8) +
-scale_fill_gradientn(colors = map_palette,  name = "Total number of employees") 
+theme_void(base_size = 11) +
+scale_fill_gradientn(colors = map_palette,  name = "Density of employees\ndensity/mile^2") 
 
 ggsave("images/total_emp_map .png",
-       height = 4.25, width = 6.5, units = "in")
+      width = 417.67, height = 200, units = "mm",dpi = 300)
 ```
 
 ```{r}
 basic_emp_map <- ggplot(zones) +
-  geom_sf(aes(fill = basic_emp), color="NA")
+  geom_sf(aes(fill = as.numeric(basic_emp_density)), color="NA")
 
 map_palette <- brewer.pal(5, "PuBuGn")
 
 basic_emp_map + 
-theme_void(base_size = 8) +
-scale_fill_gradientn(colors = map_palette,  name = "Total number of basic employees") 
+theme_void(base_size = 11) +
+scale_fill_gradientn(colors = map_palette,  name = "Density of basic\nemployees density/mile^2") 
 
 ggsave("images/basic_emp_map.png",
-       height = 4.25, width = 6.5, units = "in")
+      width = 417.67, height = 200, units = "mm",dpi = 300)
 ```
 
 
 ```{r}
 retail_emp_map <- ggplot(zones) +
-  geom_sf(aes(fill = retail_emp), color="NA")
+  geom_sf(aes(fill = as.numeric(retail_emp)), color="NA")
 
 map_palette <- brewer.pal(5, "PuBuGn")
 
 retail_emp_map + 
-theme_void(base_size = 8) +
-scale_fill_gradientn(colors = map_palette,  name = "Total number of retail employees") 
+theme_void(base_size = 11) +
+scale_fill_gradientn(colors = map_palette,  name = "Density of retail\n employees/miles^2") 
 
 ggsave("images/retail_emp_map.png",
-       height = 4.25, width = 6.5, units = "in")
+       width = 417.67, height = 200, units = "mm",dpi = 300)
 ```
 ```{r}
 service_emp_map <- ggplot(zones) +
@@ -340,7 +353,7 @@ theme_void(base_size = 8) +
 scale_fill_gradientn(colors = map_palette,  name = "Total number of service employees") 
 
 ggsave("images/service_emp_map.png",
-       height = 4.25, width = 6.5, units = "in")
+      width = 417.67, height = 200, units = "mm",dpi = 300)
 ```
 # Generate treemap diagrams for income and household size composition of study area
 ```{r}
@@ -368,7 +381,7 @@ ggplot(income_tibble, aes(area = Percentage, fill= bucket)) +
   scale_fill_brewer(palette = "PuBuGn")
 
 ggsave("images/treemap_income.png",
-       height = 4.25, width = 6.5, units = "in")
+      width = 417.67, height = 200, units = "mm",dpi = 300)
 ```
 
 
@@ -391,7 +404,7 @@ ggplot(hhsize_tibble, aes(area = Percentage, fill= bucket)) +
   scale_fill_brewer(palette = "PuBuGn")
 
 ggsave("images/treemap_hhsize.png",
-       height = 4.25, width = 6.5, units = "in")
+       width = 417.67, height = 200, units = "mm",dpi = 300)
 ```
 
 # Create Dot-Density Map
