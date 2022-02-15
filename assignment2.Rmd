@@ -6,17 +6,8 @@ output: html_document
 ---
 
 
-```{r}
-# install.packages("ggthemes")
-# install.packages("RColorBrewer")
-# install.packages("leaflet")
-# install.packages("htmlwidgets")
-# install.packages("tibble")
-# install.packages("treemapify")
-# install.packages("lwgeom")
-```
 
-```{r}
+```{r,warning=FALSE,message=FALSE}
 library(tibble)
 library(tidycensus)
 library(sf)
@@ -26,6 +17,7 @@ library(dplyr)
 library(treemapify)
 library(tidyverse)
 library(knitr)
+
 
 ```
 
@@ -217,6 +209,10 @@ table <- zone_data %>%
 
 write_csv(zone_data, "images/zone_summary.csv", append = FALSE)
 
+sum(census$total_hhsE)
+sum(zone_data$retail_emp)
+sum(zone_data$service_emp)
+sum(zone_data$total_emp)
 ```
 
 # Regional Data
@@ -254,6 +250,14 @@ region_inc <- get_acs(
 kable(region_inc, digits=2)
 ```
 
+
+
+# Calculate Area
+```{r}
+# census <- census %>%
+#   mutate(tract_area = st_area(geometry))
+```
+
 #Creating chloropleth maps for household, income and employment data
 ```{r}
 total_hh_map <- ggplot(census) +
@@ -266,7 +270,7 @@ theme_void(base_size = 8) +
 scale_fill_gradientn(colors = map_palette,  name = "Total number of households") 
 
 ggsave("images/total_hh_map.png",
-       height = 4.25, width = 6.5, units = "in")
+       width = 313.1, units = "px",dpi = 300)
 ```
 
 ```{r}
