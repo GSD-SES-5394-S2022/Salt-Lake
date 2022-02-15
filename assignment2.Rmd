@@ -28,18 +28,13 @@ Main Street is one of the key commercial streets in Salt Lake City with banks, m
 We are interested in modelling Main Street pedestrianization and closure for cars to explore how impactful the plan for a permanent pedestrian zone may be. We think this is especially relevant since Open Streets have been implemented all across the country, post-pandemic, and many other cities are also considering similar pedestrianization projects with the success of outdoor dining and retail activities.
 
 #Getting census variable names
-We first decide to retrieve census data on population characteristics 
-through the American Commmunity Survey 2019, using the tidycensus package.
+We first retrieve census data on population characteristics through the American Commmunity Survey 2019, using the tidycensus package.
 
 ```{r}
 area_vars_2019 <- load_variables(2019, "acs5")
 ```
 #Download census data.
-We then download census data for the Salt Lake Metropolitan Statistical Area 
-for selected variables that are relevant to this analysis, 
-including household size, vehicle ownership and household income. 
-This data is available at the census block level, and we retrieve it for 
-Salt Lake and Tooele Counties that constitute the Salt Lake MSA.
+We download census data for the Salt Lake Metropolitan Statistical Area for selected variables that are relevant to this analysis, including number of households, household size, vehicle ownership and household income. This data is available at the census block level, and we retrieve it for Salt Lake and Tooele Counties that constitute the Salt Lake MSA.
 
 ```{r}
 
@@ -79,12 +74,7 @@ census <- get_acs(geography = 'tract',
 
 ```
 #Combine income variables to create three new income categories.
-We had retreived census data on the total number of households earning incomes 
-in various income categories at the census block level. 
-We then collapsed and determined the tract level data for that 
-and combined all the income categories to form three broad categories 
-These are under $35,000, between $35,000 and $60,000
-and over $60,000.
+We had retreived census data on the total number of households earning incomes in various income categories at the census block level. We then collapsed and determined the tract level data for that and combined all the income categories to form five broad categories based on the regional quintiles at 20%, 35%, 60% and 80% levels. These are under $35,000; $35,000 - $60,000; $60,000 - $100,000; $100,000 - $150,000; and $150,000 - $200,000.
 
 ```{r}
 census <- census %>% 
@@ -128,11 +118,7 @@ select(GEOID,
           inc_gt_200kE)
 ```
 #Download block level employment data for Utah from the LEHD dataset.
-For this exercise, we first retreived employment data from the
-Longitudinal Employer-Household Dynamica (LEHD) dataset. 
-We pulled census block-level data for the state of Utah from the 
-Workplace Characteristics section for 2019. 
-Variables we pulled include:
+For this exercise, we first retreived employment data from the Longitudinal Employer-Household Dynamics (LEHD) dataset. We pulled census block-level data for the state of Utah from the Workplace Characteristics section for 2019. Variables we pulled include:
 - Total employment or number of workers
 - Basic employment which we added (includes Agriculture, Forestry,
 Fishing, and Hunting (CNS01), Mining and extraction (CNS02), Utilities
@@ -154,8 +140,7 @@ lehd_blocks <- read_csv('https://lehd.ces.census.gov/data/lodes/LODES7/ut/wac/ut
 ```
 
 #Collapse block level employment data to tract level data for Utah.
-We then collapse the block level data to determined 
-employment characteristics at the tract level.
+We then collapse the block level data to determined employment characteristics at the tract level for the state data. 
 ```{r}
 library(tidyverse)
 
@@ -168,10 +153,7 @@ lehd_tracts <- lehd_blocks %>%
 ```
 
 #Join tract level employment data with population data 
-We then combine employment data for Utah state with the 
-previously compiled population data tracts within Salt Lake MSA boundary. 
-This filters down the state level employment data to data 
-for our two selected counties in the Salt Lake MSA area
+We then combine employment data for Utah state with the previously compiled population data tracts within Salt Lake MSA boundary. This filters down the state level employment data to data for our two selected counties (Salt Lake and Tooele) in the Salt Lake MSA area.
 
 ```{r}
 zones <- left_join(census, lehd_tracts)
@@ -188,6 +170,7 @@ zone_data <- zones %>%
 ```
 
 #Summarize tract statistics
+We summarize all key statistics with regard to the tract level data and determine mean, median and standard deviation for all selected variables. We all find the total number of households and employees in our MSA.
 ```{r}
 #
 table <- zone_data %>%
@@ -215,6 +198,7 @@ sum(zone_data$total_emp)
 ```
 
 # Regional Data
+We find the distribution of household incomes for the region as a whole so that we can determine the quintiles. We use these same quintiles to create income categories for our tract level data.
 ```{r}
 vars <- c(inc_lt_10k = 'B19001_002',
           inc_btw_10k_15k = 'B19001_003',
@@ -232,7 +216,6 @@ vars <- c(inc_lt_10k = 'B19001_002',
           inc_btw_125k_150k = 'B19001_015',
           inc_btw_150k_200k = 'B19001_016',
           inc_gt_200k = 'B19001_017')
-
 
 
 region_inc <- get_acs(
@@ -267,8 +250,6 @@ zones <- zones %>%
   mutate(service_emp_density = service_emp/census$tract_area)%>% 
   mutate(retail_emp_density = retail_emp/census$tract_area)
 ```
-
-
 
 
 #Creating chloropleth maps for household, income and employment data
