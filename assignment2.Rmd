@@ -73,6 +73,43 @@ census <- get_acs(geography = 'tract',
                  geometry = TRUE)
 
 ```
+# Regional Data
+We find the distribution of household incomes for the region as a whole so that we can determine the quintiles. We use these same quintiles to create income categories for our tract level data.
+```{r}
+vars <- c(inc_lt_10k = 'B19001_002',
+          inc_btw_10k_15k = 'B19001_003',
+          inc_btw_15k_20k = 'B19001_004',
+          inc_btw_20k_25k = 'B19001_005',
+          inc_btw_25k_30k = 'B19001_006',
+          inc_btw_30k_35k = 'B19001_007',
+          inc_btw_35k_40k = 'B19001_008',
+          inc_btw_40k_45k = 'B19001_008',
+          inc_btw_45k_50k = 'B19001_010',
+          inc_btw_50k_60k = 'B19001_011',
+          inc_btw_60k_75k = 'B19001_012',
+          inc_btw_75k_100k = 'B19001_013',
+          inc_btw_100k_125k = 'B19001_014',
+          inc_btw_125k_150k = 'B19001_015',
+          inc_btw_150k_200k = 'B19001_016',
+          inc_gt_200k = 'B19001_017')
+
+
+region_inc <- get_acs(
+  geography = "metropolitan statistical area/micropolitan statistical area",
+  variables = vars,
+  summary_var = 'B19001_001',
+  geometry = FALSE) %>%
+  filter(GEOID == "41620") %>%
+  mutate(pct = estimate / summary_est) %>%
+  mutate(cumul_pct = cumsum(pct)) %>%
+  select(variable, cumul_pct)
+```
+
+```{r}
+kable(region_inc, digits=2)
+```
+
+
 #Combine income variables to create three new income categories.
 We had retreived census data on the total number of households earning incomes in various income categories at the census block level. We then collapsed and determined the tract level data for that and combined all the income categories to form five broad categories based on the regional quintiles at 20%, 35%, 60% and 80% levels. These are under 35,000; 35,000 - 60,000; 60,000 - 100,000; 100,000 - 150,000; and 150,000 - $200,000.
 
@@ -170,18 +207,14 @@ zone_data <- zones %>%
 ```
 
 #Summarize tract statistics
-We summarize all key statistics with regard to the tract level data and determine mean, median and standard deviation for all selected variables. We all find the total number of households and employees in our MSA.
+We summarize all key statistics with regard to the tract level data and determine mean, median and standard deviation for all selected variables. 
 ```{r}
 #
-table <- zone_data %>%
-  pivot_longer(cols=c(total_hhsE,no_vehE,
-         inc_quint_20,
-         inc_quint_35,
-         inc_quint_60,
-         inc_quint_80,
-         inc_quint_100,
-          total_emp, basic_emp, retail_emp, service_emp,
-         hh_1personE, hh_2personE, hh_3personE, hh_4person_plusE),
+zone_data %>%
+  pivot_longer(cols=c(total_emp, total_hhsE, no_vehE,
+                      inc_quint_20, inc_quint_35,inc_quint_60,
+                      inc_quint_80,inc_quint_100,
+                      basic_emp, retail_emp, service_emp,),
                names_to = "Variable",
                values_to = "value") %>%
   group_by(Variable) %>%
@@ -190,48 +223,16 @@ table <- zone_data %>%
             Median = median(value, median(value, na.rm=TRUE)))
 
 write_csv(zone_data, "images/zone_summary.csv", append = FALSE)
+```
 
+We also find the total number of households and employees in our MSA.
+
+```{r}
 sum(census$total_hhsE)
 sum(zone_data$retail_emp)
 sum(zone_data$service_emp)
 sum(zone_data$total_emp)
 ```
-
-# Regional Data
-We find the distribution of household incomes for the region as a whole so that we can determine the quintiles. We use these same quintiles to create income categories for our tract level data.
-```{r}
-vars <- c(inc_lt_10k = 'B19001_002',
-          inc_btw_10k_15k = 'B19001_003',
-          inc_btw_15k_20k = 'B19001_004',
-          inc_btw_20k_25k = 'B19001_005',
-          inc_btw_25k_30k = 'B19001_006',
-          inc_btw_30k_35k = 'B19001_007',
-          inc_btw_35k_40k = 'B19001_008',
-          inc_btw_40k_45k = 'B19001_008',
-          inc_btw_45k_50k = 'B19001_010',
-          inc_btw_50k_60k = 'B19001_011',
-          inc_btw_60k_75k = 'B19001_012',
-          inc_btw_75k_100k = 'B19001_013',
-          inc_btw_100k_125k = 'B19001_014',
-          inc_btw_125k_150k = 'B19001_015',
-          inc_btw_150k_200k = 'B19001_016',
-          inc_gt_200k = 'B19001_017')
-
-
-region_inc <- get_acs(
-  geography = "metropolitan statistical area/micropolitan statistical area",
-  variables = vars,
-  summary_var = 'B19001_001',
-  geometry = FALSE) %>%
-  filter(GEOID == "41620") %>%
-  mutate(pct = estimate / summary_est) %>%
-  mutate(cumul_pct = cumsum(pct)) %>%
-  select(variable, cumul_pct)
-```
-```{r}
-kable(region_inc, digits=2)
-```
-
 
 
 # Calculate Area & Density Variables
