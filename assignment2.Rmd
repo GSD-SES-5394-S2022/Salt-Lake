@@ -431,14 +431,21 @@ ggplot(census) +
   geom_sf(data = hh_size_pts, 
           aes(color = hh_size), 
           alpha = 0.3,
+<<<<<<< HEAD
           size = 0.2) +
+=======
+          size = 0.1) +
+>>>>>>> 5d8bb0b3ded1945a32e777e20f14e3acb0468db7
   scale_color_brewer("Household size\n(each points represents\n100 households)",
                      palette = "Set1") +
   theme_void()  +
   guides(color = guide_legend(override.aes = list(size=5, alpha = 0.6)))
+<<<<<<< HEAD
 
 ggsave("images/dotdensitymap_hhsize.png",
        width = 40, height = 20, units = "cm",dpi = 300)
+=======
+>>>>>>> 5d8bb0b3ded1945a32e777e20f14e3acb0468db7
 ```
 ```{r}
 inc_quint_20_pts <- st_sample(census, 
