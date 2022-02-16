@@ -214,7 +214,8 @@ zone_data %>%
   pivot_longer(cols=c(total_emp, total_hhsE, no_vehE,
                       inc_quint_20, inc_quint_35,inc_quint_60,
                       inc_quint_80,inc_quint_100,
-                      basic_emp, retail_emp, service_emp,),
+                      basic_emp, retail_emp, service_emp,
+                      hh_1personE, hh_2personE, hh_3personE, hh_4person_plusE,),
                names_to = "Variable",
                values_to = "value") %>%
   group_by(Variable) %>%
@@ -236,6 +237,7 @@ sum(zone_data$total_emp)
 
 
 # Calculate Area & Density Variables
+We calculate density of total households, zero-vehicle households, and different employment types per square mile.
 ```{r}
 census <- census %>%
   mutate(tract_area = st_area(geometry)) %>%
@@ -262,7 +264,8 @@ map_palette <- brewer.pal(5, "PuBuGn")
 
 total_hh_map + 
 theme_void(base_size = 11) +
-scale_fill_gradientn(colors = map_palette,  name = "Density of households/mile^2") 
+scale_fill_gradientn(colors = map_palette,  
+                     name = "Density of households/mile^2") 
 
 ggsave("images/total_hh_map.png",
        width = 417.67, height = 200, units = "mm",dpi = 300)
@@ -276,10 +279,11 @@ map_palette <- brewer.pal(5, "PuBuGn")
 
 no_veh_map + 
 theme_void(base_size = 11) +
-scale_fill_gradientn(colors = map_palette,  name = "Density of zero-vehicle\nhouseholds/mile^2") 
+scale_fill_gradientn(colors = map_palette,  
+                     name = "Zero-vehicle\nhouseholds/mile^2") 
 
 ggsave("images/no_veh_map.png",
-       width = 417.67, height = 200, units = "mm",dpi = 300)
+       width = 40, height = 20, units = "cm",dpi = 300)
 ```
 
 ```{r}
@@ -290,10 +294,11 @@ map_palette <- brewer.pal(5, "PuBuGn")
 
 total_emp_map + 
 theme_void(base_size = 11) +
-scale_fill_gradientn(colors = map_palette,  name = "Density of employees\ndensity/mile^2") 
+scale_fill_gradientn(colors = map_palette,  
+                     name = "Total employees\nper mile^2") 
 
 ggsave("images/total_emp_map .png",
-      width = 417.67, height = 200, units = "mm",dpi = 300)
+      width = 40, height = 20, units = "cm",dpi = 300)
 ```
 
 ```{r}
@@ -304,10 +309,11 @@ map_palette <- brewer.pal(5, "PuBuGn")
 
 basic_emp_map + 
 theme_void(base_size = 11) +
-scale_fill_gradientn(colors = map_palette,  name = "Density of basic\nemployees density/mile^2") 
+scale_fill_gradientn(colors = map_palette,  
+                     name = "Basic employees\nper mile^2") 
 
 ggsave("images/basic_emp_map.png",
-      width = 417.67, height = 200, units = "mm",dpi = 300)
+      width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
 
@@ -319,10 +325,11 @@ map_palette <- brewer.pal(5, "PuBuGn")
 
 retail_emp_map + 
 theme_void(base_size = 11) +
-scale_fill_gradientn(colors = map_palette,  name = "Density of retail\n employees/miles^2") 
+scale_fill_gradientn(colors = map_palette,  
+                     name = "Retail employees\nper mile^2") 
 
 ggsave("images/retail_emp_map.png",
-       width = 417.67, height = 200, units = "mm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 ```{r}
 service_emp_map <- ggplot(zones) +
@@ -332,10 +339,11 @@ map_palette <- brewer.pal(5, "PuBuGn")
 
 service_emp_map + 
 theme_void(base_size = 8) +
-scale_fill_gradientn(colors = map_palette,  name = "Total number of service employees") 
+scale_fill_gradientn(colors = map_palette,  
+                     name = "Total number of service employees") 
 
 ggsave("images/service_emp_map.png",
-      width = 417.67, height = 200, units = "mm",dpi = 300)
+      width = 20, height = 15, units = "cm",dpi = 300)
 ```
 # Generate treemap diagrams for income and household size composition of study area
 ```{r}
@@ -345,11 +353,11 @@ income_buckets <- c(sum(census$inc_quint_20)/sum(census$total_hhsE),
                     sum(census$inc_quint_80)/sum(census$total_hhsE),
                     sum(census$inc_quint_100)/sum(census$total_hhsE)                    
                     ) 
-income_tibble <- tibble(bucket = c("Quantile 20%: Below 35k",
-                               "Quantile 35%: 35-60k",
-                               "Quantile 60%: 60-100k",
-                               "Quantile 80%: 100-150k",
-                               "Quantile 100%: Above 150k"),
+income_tibble <- tibble(bucket = c("Below $ 35k",
+                               "$ 35-60k",
+                               "$ 60-100k",
+                               "$ 100-150k",
+                               "$ Above 150k"),
 
                      Percentage = as.numeric(income_buckets*100)
                      )
@@ -368,7 +376,10 @@ ggsave("images/treemap_income.png",
 
 
 ```{r}
-hhsize_buckets <- c(sum(census$hh_1personE)/sum(census$total_hhsE),sum(census$hh_2personE)/sum(census$total_hhsE),sum(census$hh_3personE)/sum(census$total_hhsE),sum(census$hh_4person_plusE)/sum(census$total_hhsE)) 
+hhsize_buckets <- c(sum(census$hh_1personE)/sum(census$total_hhsE),
+                    sum(census$hh_2personE)/sum(census$total_hhsE),
+                    sum(census$hh_3personE)/sum(census$total_hhsE),
+                    sum(census$hh_4person_plusE)/sum(census$total_hhsE)) 
 hhsize_tibble <- tibble(bucket = c("Households with 1 person",
                                "Households with 2 person",
                                "Households with 3 person",
@@ -480,7 +491,8 @@ inc_quint_100_df <- tibble(inc_category = rep("150,000 - $200,000",
                                       length(inc_quint_100_pts))) %>%
   st_sf(geom = inc_quint_100_pts)
 
-inc_quint_pts <- rbind(inc_quint_20_df, inc_quint_35_df, inc_quint_60_df, inc_quint_80_df, inc_quint_100_df)
+inc_quint_pts <- rbind(inc_quint_20_df, inc_quint_35_df, inc_quint_60_df, 
+                       inc_quint_80_df, inc_quint_100_df)
 ```
 
 ```{r}
