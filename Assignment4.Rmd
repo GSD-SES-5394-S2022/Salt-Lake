@@ -11,14 +11,14 @@ This file determines the existing characteristics of the street and transit netw
 #Load relevant libraries
 
 
+#Download a GTFS feed
+We downloaded data on Utah Transit Authority in the GTFS format from OpenMobilityData which maintains an archive of GTFS feeds for cities throughout the world. We downloaded the GTFS feed dated 15 February 2022 for our study area from here (https://transitfeeds.com/p/utah-transportation-authority) and saved the zipped file to the networks subfolder in the existing folder of our project directory. 
+
 #Download an OpenStreetMap network
 We represent the existing roadway network in a format that to allow us to calculate travel times. OpenStreetMaps is helpful for this.
 
 #Convert an OSM file to a PBF file
 You will be downloading OpenStreetMap data (and potentially editing it) in the .osm file format. To use it with the the the r5r package, you’ll need to convert it to a .pbf file (which is just a compressed version of the *.osm file).
-
-#Download a GTFS feed
-We download data on the transit network in the GTFS format. 
 
 #Generate skims
 A skim is a matrix of travel times (or distances or costs) for all possible origin-destination pairs in your model. The R5R package is really useful for generating skims.
