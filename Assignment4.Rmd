@@ -9,6 +9,15 @@ output: html_document
 This file determines the existing characteristics of the street and transit networks within Salt Lake MSA.
 
 #Load relevant libraries
+```{r}
+library(tidyverse)
+library(sf)
+library(tigris)
+library(osmdata)
+library(devtools)
+library(tidytransit)
+library(here)
+```
 
 
 #Download a GTFS feed
@@ -16,9 +25,42 @@ We downloaded data on Utah Transit Authority in the GTFS format from OpenMobilit
 
 #Download an OpenStreetMap network
 We represent the existing roadway network in a format that to allow us to calculate travel times. OpenStreetMaps is helpful for this.
+```{r}
+# Load the MSA boundaries
+boundary <- core_based_statistical_areas() %>%
+  filter(GEOID == "41620")
+
+# Define a bounding box containing the MSA
+saltlake_bbox <- st_bbox(boundary)
+
+q <- opq(bbox = saltlake_bbox) %>% # create a query
+  add_osm_feature(key = 'highway') %>% # request only road data
+  osmdata_xml(file = 'existing/networks/streets.osm') # download osm file
+```
+
 
 #Convert an OSM file to a PBF file
 You will be downloading OpenStreetMap data (and potentially editing it) in the .osm file format. To use it with the the the r5r package, you’ll need to convert it to a .pbf file (which is just a compressed version of the *.osm file).
 
+#Create zone centroids
+To be able to calculate the travel times to and from each centroid, we generate a set of centroid points from the zone boundary.
+```{r}
+centroids <- here("zones",
+                  "boundaries.geojson") %>%
+  st_read() %>%
+  st_centroid() %>%
+  st_transform("WGS84") %>%
+  rename(id = GEOID)
+```
+
+#Install scenRios package
+Install the scenRios package from Github developed by Dr. Carole Voulgaris to edit the the transit network or the street network.
+```{r}
+install_github("https://github.com/c-voulgaris/scenRios")
+```
+
+
 #Generate skims
 A skim is a matrix of travel times (or distances or costs) for all possible origin-destination pairs in your model. The R5R package is really useful for generating skims.
+
+
