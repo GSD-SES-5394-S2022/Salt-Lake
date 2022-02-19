@@ -9,7 +9,7 @@ output: html_document
 This file determines the existing characteristics of the street and transit networks within Salt Lake MSA.
 
 #Load relevant libraries
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(sf)
 library(tigris)
@@ -17,6 +17,7 @@ library(osmdata)
 library(devtools)
 library(tidytransit)
 library(here)
+library(r5r)
 ```
 
 
@@ -43,7 +44,7 @@ q <- opq(bbox = saltlake_bbox) %>% # create a query
 You will be downloading OpenStreetMap data (and potentially editing it) in the .osm file format. To use it with the the the r5r package, you’ll need to convert it to a .pbf file (which is just a compressed version of the *.osm file).
 
 #Create zone centroids
-To be able to calculate the travel times to and from each centroid, we generate a set of centroid points from the zone boundary.
+To be able to calculate the travel times to and from each centroid, we generate a set of centroid points from the zone boundary. Then, we write the centroids into original zones dataset.
 ```{r}
 centroids <- here("zones",
                   "boundaries.geojson") %>%
@@ -52,15 +53,37 @@ centroids <- here("zones",
   st_transform("WGS84") %>%
   rename(id = GEOID)
 ```
+```{r}
+# save centroids to original zones dataset
+st_write(centroids, here("zones", "centroids.geojson"))
+```
 
 #Install scenRios package
 Install the scenRios package from Github developed by Dr. Carole Voulgaris to edit the the transit network or the street network.
-```{r}
+```{r, message = FALSE, warning=FALSE}
 install_github("https://github.com/c-voulgaris/scenRios")
 ```
 
 
-#Generate skims
-A skim is a matrix of travel times (or distances or costs) for all possible origin-destination pairs in your model. The R5R package is really useful for generating skims.
+#Generate skims(Existing Scenario)
+In the chunks below, we generate skim for existing scenario in the studied area with the R5R package.
+```{r}
+#increase the memory your computer allocates to Java
+options(java.parameters = "-Xmx2G")
+```
+
+```{r}
+exisiting_core <- here("existing",
+                      "networks") %>%
+  setup_r5(verbose = FALSE)
+```
+```{r, message = FALSE, warning=FALSE}
+#generate car skims
+car_skim_exs <- travel_time_matrix(exisiting_core, 
+                     origins = centroids,
+                     destinations = centroids,
+                     mode = "CAR")
+```
+
 
 
