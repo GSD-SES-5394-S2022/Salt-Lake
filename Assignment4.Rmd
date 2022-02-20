@@ -19,6 +19,8 @@ library(tidytransit)
 library(here)
 library(r5r)
 library(lubridate)
+library(scenRios)
+library(knitr)
 ```
 
 
@@ -122,4 +124,24 @@ stop_r5()
 transit_skim_alt <- transit_skim_alt %>%
   filter(n_rides > 0)
 ```
+
+# Modify Transportation Network for Alternative Scenario
+# View GTFS service plans
+
+```{r}
+current_gtfs <- here("existing",
+                     "networks",
+                     "gtfs.zip") %>%
+  read_gtfs()
+```
+
+# Edit transit route frequency
+```{r}
+current_hdwys <- gtfs_get_hdwys(current_gtfs, 
+                                        route = "27610",
+                                        service = "4")
+kable(current_hdwys)
+```
+
+
 
