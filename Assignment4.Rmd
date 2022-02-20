@@ -143,5 +143,17 @@ current_hdwys <- gtfs_get_hdwys(current_gtfs,
 kable(current_hdwys)
 ```
 
+#prepare to edit openstreet map
+```{r}
+library(scenRios)
+library(tidyverse)
+
+old_network <- read_lines("existing/networks/streets.osm")
+
+new_network <- osm_prep_network(old_network)
+
+write_lines(new_network, 
+            file = "alternative/networks/streets.osm")
+```
 
 
