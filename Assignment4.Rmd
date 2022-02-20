@@ -18,6 +18,7 @@ library(devtools)
 library(tidytransit)
 library(here)
 library(r5r)
+library(lubridate)
 ```
 
 
@@ -73,17 +74,52 @@ options(java.parameters = "-Xmx2G")
 ```
 
 ```{r}
-exisiting_core <- here("existing",
+existing_core <- here("existing",
                       "networks") %>%
   setup_r5(verbose = FALSE)
 ```
+
 ```{r, message = FALSE, warning=FALSE}
 #generate car skims
-car_skim_exs <- travel_time_matrix(exisiting_core, 
+car_skim_exs <- travel_time_matrix(existing_core, 
                      origins = centroids,
                      destinations = centroids,
                      mode = "CAR")
 ```
 
+```{r}
+#generate bike skims
+bicycle_skim_exs <- travel_time_matrix(existing_core, 
+                     origins = centroids,
+                     destinations = centroids,
+                     mode = "BICYCLE")
+```
 
+```{r}
+#generate walk skims
+walk_skim_exs <- travel_time_matrix(existing_core, 
+                     origins = centroids,
+                     destinations = centroids,
+                     mode = "WALK")
+```
+
+```{r, message=FALSE,warning=FALSE, echo=FALSE, include = FALSE}
+#generate transit skims
+
+transit_skim_exs <- travel_time_matrix(existing_core, 
+                     origins = centroids,
+                     destinations = centroids,
+                     mode = "TRANSIT",
+                     departure_datetime = ymd_hm("2022-02-09 17:00"),
+                     breakdown = TRUE)
+```
+
+```{r}
+stop_r5()
+```
+
+```{r}
+transit_skim_alt <- transit_skim_alt %>%
+  filter(n_rides > 0)
+```
 
