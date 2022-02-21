@@ -26,6 +26,10 @@ library(r5r)
 library(lubridate)
 library(scenRios)
 library(knitr)
+library(ggthemes)
+library(RColorBrewer)
+
+
 ```
 
 
@@ -256,6 +260,7 @@ transit_skim_alt <- travel_time_matrix(alternative_core,
 
 ```{r}
 stop_r5()
+
 ```
 
 ```{r}
@@ -284,3 +289,37 @@ all_skims_alt <- full_join(transit_skim_alt, car_skim_alt) %>%
 
 write_csv(all_skims_alt, here("alternative/data/skims.csv"))
 ```
+
+```{r}
+all_skims_exs <- read.csv("existing/data/skims.csv")
+```
+
+```{r}
+table <- all_skims_exs %>%
+  pivot_longer(cols=c(walk_time,car_time,transit_time,bike_time),
+               names_to = "Variable",
+               values_to = "value") %>%
+  group_by(Variable) %>%
+  summarize(Average = mean(value, na.rm=TRUE),
+            `Standard deviation` = sd(value, na.rm=TRUE),
+            Median = median(value, median(value, na.rm=TRUE)))
+
+```
+
+```{r}
+
+map_palette <- brewer.pal(5, "YlOrBr")
+
+map_existing <- ggplot(zones) +
+  geom_sf(aes(fill = existing),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="36029002502",],
+          fill = "blue",
+          color = "blue") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Travel time\n(existing)") +
+  theme_void()
+
+map_existing
+```
+
