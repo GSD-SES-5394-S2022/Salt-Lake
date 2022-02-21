@@ -145,8 +145,9 @@ write_csv(all_skims_exs, here("existing/data/skims.csv"))
 ```
 
 
-# Modify Transportation Network for Alternative Scenario
+## Modify Transportation Network for Alternative Scenario
 # View GTFS service plans
+
 
 ```{r}
 current_gtfs <- here("existing",
@@ -155,13 +156,42 @@ current_gtfs <- here("existing",
   read_gtfs()
 ```
 
-# Edit transit route frequency
+# Read existing transit route frequency
 ```{r}
 current_hdwys <- gtfs_get_hdwys(current_gtfs, 
                                         route = "27610",
                                         service = "4")
 kable(current_hdwys)
 ```
+# Edit frequency/headway
+The original frequency is not even, ranging from around 14-30 minutes. The code below set a new minimum headway to 5 minutes.
+```{r}
+new_gtfs <- gtfs_set_min_hdwy(current_gtfs,
+                              route = "27610",
+                              service = "4",
+                              new_hdwy = 5)
+```
+
+#check results 
+The new headway ranges from 5-15 minutes, which is roughly twice of the original frequency and satisfies the purpose of the study.
+```{r}
+new_hdwys <- gtfs_get_hdwys(new_gtfs,
+                            route = "27610",
+                            service = "4")
+
+
+kable(new_hdwys)
+```
+# Save the new GTFS file
+```{r}
+new_gtfs_path <- here("alternative",
+                      "networks",
+                      "gtfs.zip")
+
+write_gtfs(new_gtfs, new_gtfs_path)
+```
+
+
 
 #Prepare to edit openstreet map
 ```{r}
