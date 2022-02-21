@@ -8,8 +8,13 @@ output: html_document
 #Networks - Existing Scenario
 This file determines the existing characteristics of the street and transit networks within Salt Lake MSA.
 
+
+
 #Load relevant libraries
 ```{r, message=FALSE, warning=FALSE}
+
+options(java.parameters = "-Xmx2G")
+
 library(tidyverse)
 library(sf)
 library(tigris)
@@ -61,19 +66,11 @@ centroids <- here("zones",
 st_write(centroids, here("zones", "centroids.geojson"))
 ```
 
-#Install scenRios package
-Install the scenRios package from Github developed by Dr. Carole Voulgaris to edit the the transit network or the street network.
-```{r, message = FALSE, warning=FALSE}
-install_github("https://github.com/c-voulgaris/scenRios")
-```
 
 
 #Generate skims(Existing Scenario)
 In the chunks below, we generate skim for existing scenario in the studied area with the R5R package.
-```{r}
-#increase the memory your computer allocates to Java
-options(java.parameters = "-Xmx2G")
-```
+
 
 ```{r}
 existing_core <- here("existing",
