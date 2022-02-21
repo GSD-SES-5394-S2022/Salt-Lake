@@ -43,6 +43,8 @@ We represent the existing roadway network in a format that to allow us to calcul
 boundary <- core_based_statistical_areas() %>%
   filter(GEOID == "41620")
 
+
+
 # Define a bounding box containing the MSA
 saltlake_bbox <- st_bbox(boundary)
 
@@ -199,8 +201,6 @@ write_gtfs(new_gtfs, new_gtfs_path)
 
 #Prepare to edit openstreet map
 ```{r}
-library(scenRios)
-library(tidyverse)
 
 old_network <- read_lines("existing/networks/streets.osm")
 
@@ -224,7 +224,7 @@ alternative_core <- here("alternative",
 ```
 
 ```{r, message = FALSE, warning=FALSE, include= FALSE}
-#generate car skims
+#generate car skim
 car_skim_alt <- travel_time_matrix(alternative_core, 
                      origins = centroids,
                      destinations = centroids,
@@ -232,7 +232,7 @@ car_skim_alt <- travel_time_matrix(alternative_core,
 ```
 
 ```{r, include = FALSE}
-#generate bike skims
+#generate bike skim
 bicycle_skim_alt <- travel_time_matrix(alternative_core, 
                      origins = centroids,
                      destinations = centroids,
@@ -240,7 +240,7 @@ bicycle_skim_alt <- travel_time_matrix(alternative_core,
 ```
 
 ```{r,include = FALSE}
-#generate walk skims
+#generate walk skim
 walk_skim_alt <- travel_time_matrix(alternative_core, 
                      origins = centroids,
                      destinations = centroids,
@@ -294,8 +294,9 @@ write_csv(all_skims_alt, here("alternative/data/skims.csv"))
 all_skims_exs <- read.csv("existing/data/skims.csv")
 ```
 
+# Summarize existing skims
 ```{r}
-table <- all_skims_exs %>%
+all_skims_exs %>%
   pivot_longer(cols=c(walk_time,car_time,transit_time,bike_time),
                names_to = "Variable",
                values_to = "value") %>%
@@ -306,20 +307,281 @@ table <- all_skims_exs %>%
 
 ```
 
+# Summarize alternative skims
+```{r}
+all_skims_alt %>%
+  pivot_longer(cols=c(walk_time,car_time,transit_time,bike_time),
+               names_to = "Variable",
+               values_to = "value") %>%
+  group_by(Variable) %>%
+  summarize(Average = mean(value, na.rm=TRUE),
+            `Standard deviation` = sd(value, na.rm=TRUE),
+            Median = median(value, median(value, na.rm=TRUE)))
+```
+```{r}
+car_mat_exist <- all_skims_exs %>% 
+  select(fromId, toId, car_time) %>%
+  pivot_wider(names_from = toId, 
+              values_from = car_time) %>%
+  column_to_rownames("fromId")
+
+car_mat_alt <- all_skims_alt %>%
+  select(fromId, toId, car_time) %>%
+  pivot_wider(names_from = toId, 
+              values_from = car_time) %>%
+  column_to_rownames("fromId")
+```
+
+```{r}
+car_diff <- car_mat_exist - car_mat_alt
+```
+
+```{r}
+transit_mat_exist <- all_skims_exs %>% 
+  select(fromId, toId, transit_time) %>%
+  pivot_wider(names_from = toId, 
+              values_from = transit_time) %>%
+  column_to_rownames("fromId")
+
+transit_mat_alt <- all_skims_alt %>%
+  select(fromId, toId, transit_time) %>%
+  pivot_wider(names_from = toId, 
+              values_from = transit_time) %>%
+  column_to_rownames("fromId")
+
+transit_diff <- transit_mat_exist - transit_mat_alt
+```
+
+
+```{r}
+bicycle_mat_exist <- all_skims_exs %>% 
+  select(fromId, toId, bike_time) %>%
+  pivot_wider(names_from = toId, 
+              values_from = bike_time) %>%
+  column_to_rownames("fromId")
+
+bicycle_mat_alt <- all_skims_alt %>%
+  select(fromId, toId, bike_time) %>%
+  pivot_wider(names_from = toId, 
+              values_from = bike_time) %>%
+  column_to_rownames("fromId")
+
+bicycle_diff <- bicycle_mat_exist - bicycle_mat_alt
+```
+
+```{r}
+walk_mat_exist <- all_skims_exs %>% 
+  select(fromId, toId, walk_time) %>%
+  pivot_wider(names_from = toId, 
+              values_from = walk_time) %>%
+  column_to_rownames("fromId")
+
+walk_mat_alt <- all_skims_alt %>%
+  select(fromId, toId, walk_time) %>%
+  pivot_wider(names_from = toId, 
+              values_from = walk_time) %>%
+  column_to_rownames("fromId")
+
+walk_diff <- walk_mat_exist - walk_mat_alt
+```
+
+# Find tracts with the most change
+
+```{r}
+#for car
+total_diff <- car_diff %>%
+  replace(is.na(.), 0) %>%
+  mutate(total_diff = rowSums(across())) %>%
+  select(total_diff) %>%
+  rownames_to_column("GEOID")
+
+total_diff[which.min(total_diff$total_diff),]
+```
+```{r}
+# for walk
+total_diff <- walk_diff %>%
+  replace(is.na(.), 0) %>%
+  mutate(total_diff = rowSums(across())) %>%
+  select(total_diff) %>%
+  rownames_to_column("GEOID")
+
+total_diff[which.min(total_diff$total_diff),]
+```
+```{r}
+# for bicycle
+total_diff <- bicycle_diff %>%
+  replace(is.na(.), 0) %>%
+  mutate(total_diff = rowSums(across())) %>%
+  select(total_diff) %>%
+  rownames_to_column("GEOID")
+
+total_diff[which.min(total_diff$total_diff),]
+```
+```{r}
+# for transit
+total_diff <- transit_diff %>%
+  replace(is.na(.), 0) %>%
+  mutate(total_diff = rowSums(across())) %>%
+  select(total_diff) %>%
+  rownames_to_column("GEOID")
+
+total_diff[which.min(total_diff$total_diff),]
+```
+
+# for car 
 ```{r}
 
-map_palette <- brewer.pal(5, "YlOrBr")
+existing_max_diff <- car_mat_exist %>%
+  rownames_to_column("GEOID") %>%
+  select(GEOID, `49035112822`) %>%
+  rename(existing = `49035112822`)
+
+alt_max_diff <- car_mat_alt %>%
+  rownames_to_column("GEOID") %>%
+  select(GEOID, `49035112822`) %>%
+  rename(alt = `49035112822`)
+
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read() %>%
+  inner_join(existing_max_diff) %>%
+  inner_join(alt_max_diff) %>%
+  mutate(diff = alt - existing)
+```
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
 
 map_existing <- ggplot(zones) +
   geom_sf(aes(fill = existing),
           color = NA) +
-  geom_sf(data = zones[zones$GEOID=="36029002502",],
-          fill = "blue",
-          color = "blue") +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
   scale_fill_gradientn(colours = map_palette,
                        name = "Travel time\n(existing)") +
   theme_void()
 
 map_existing
+ggsave("images/map_existing_car.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+```{r}
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map_alt <- ggplot(zones) +
+  geom_sf(aes(fill = alt),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Travel time\n(alternative)") +
+  theme_void()
+
+map_alt
+ggsave("images/map_alt_car.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+```{r}
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map_diff <- ggplot(zones) +
+  geom_sf(aes(fill = diff),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Difference\nin travel times") +
+  theme_void()
+
+map_diff
+
+ggsave("images/map_diff_car.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+# for transit
+
+```{r}
+
+existing_max_diff <- transit_mat_exist %>%
+  rownames_to_column("GEOID") %>%
+  select(GEOID, `49035112822`) %>%
+  rename(existing = `49035112822`)
+
+alt_max_diff <- transit_mat_alt %>%
+  rownames_to_column("GEOID") %>%
+  select(GEOID, `49035112822`) %>%
+  rename(alt = `49035112822`)
+
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read() %>%
+  inner_join(existing_max_diff) %>%
+  inner_join(alt_max_diff) %>%
+  mutate(diff = alt - existing)
+```
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+
+map_existing <- ggplot(zones) +
+  geom_sf(aes(fill = existing),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Travel time\n(existing)") +
+  theme_void()
+
+map_existing
+ggsave("images/map_existing_transit.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+
+```{r}
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map_alt <- ggplot(zones) +
+  geom_sf(aes(fill = alt),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Travel time\n(alternative)") +
+  theme_void()
+
+map_alt
+
+ggsave("images/map_alternative_transit.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+
+```{r}
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map_diff <- ggplot(zones) +
+  geom_sf(aes(fill = diff),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Difference\nin travel times") +
+  theme_void()
+
+map_diff
+
+ggsave("images/map_diff_transit.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
 ```
 
