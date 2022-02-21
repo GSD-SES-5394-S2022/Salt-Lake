@@ -78,7 +78,7 @@ existing_core <- here("existing",
   setup_r5(verbose = FALSE)
 ```
 
-```{r, message = FALSE, warning=FALSE}
+```{r, message = FALSE, warning=FALSE, include= FALSE}
 #generate car skims
 car_skim_exs <- travel_time_matrix(existing_core, 
                      origins = centroids,
@@ -86,7 +86,7 @@ car_skim_exs <- travel_time_matrix(existing_core,
                      mode = "CAR")
 ```
 
-```{r}
+```{r, include = FALSE}
 #generate bike skims
 bicycle_skim_exs <- travel_time_matrix(existing_core, 
                      origins = centroids,
@@ -94,7 +94,7 @@ bicycle_skim_exs <- travel_time_matrix(existing_core,
                      mode = "BICYCLE")
 ```
 
-```{r}
+```{r,include = FALSE}
 #generate walk skims
 walk_skim_exs <- travel_time_matrix(existing_core, 
                      origins = centroids,
@@ -109,7 +109,7 @@ transit_skim_exs <- travel_time_matrix(existing_core,
                      origins = centroids,
                      destinations = centroids,
                      mode = "TRANSIT",
-                     departure_datetime = ymd_hm("2022-02-09 17:00"),
+                     departure_datetime = ymd_hm("2022-03-09 17:00"),
                      breakdown = TRUE)
 ```
 
@@ -118,9 +118,31 @@ stop_r5()
 ```
 
 ```{r}
-transit_skim_alt <- transit_skim_alt %>%
+# clean empty entries in transit skim
+transit_skim_exs <- transit_skim_exs %>%
   filter(n_rides > 0)
 ```
+
+```{r}
+#combine all skims into one file
+car_skim_exs <- car_skim_exs %>%
+  rename(car_time = travel_time)
+
+transit_skim_exs <- transit_skim_exs %>%
+  rename(transit_time = travel_time)
+
+walk_skim_exs <- walk_skim_exs %>%
+  rename(walk_time = travel_time)
+
+bicycle_skim_exs <- bicycle_skim_exs %>%
+  rename(bike_time = travel_time)
+
+all_skims_exs <- full_join(transit_skim_exs, car_skim_exs) %>%
+  full_join(walk_skim_exs)
+
+write_csv(all_skims_exs, here("existing/data/skims.csv"))
+```
+
 
 # Modify Transportation Network for Alternative Scenario
 # View GTFS service plans
