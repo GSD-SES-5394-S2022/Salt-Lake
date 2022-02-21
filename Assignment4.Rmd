@@ -138,7 +138,8 @@ bicycle_skim_exs <- bicycle_skim_exs %>%
   rename(bike_time = travel_time)
 
 all_skims_exs <- full_join(transit_skim_exs, car_skim_exs) %>%
-  full_join(walk_skim_exs)
+  full_join(walk_skim_exs)%>%
+  full_join(bicycle_skim_exs)
 
 write_csv(all_skims_exs, here("existing/data/skims.csv"))
 ```
@@ -177,3 +178,79 @@ write_lines(new_network,
 ```
 
 
+
+#Generate skims(Alternative Scenario)
+In the chunks below, we generate skim for alternative scenario in the studied area with the R5R package.
+
+
+```{r}
+alternative_core <- here("alternative",
+                      "networks") %>%
+  setup_r5(verbose = FALSE)
+```
+
+```{r, message = FALSE, warning=FALSE, include= FALSE}
+#generate car skims
+car_skim_alt <- travel_time_matrix(alternative_core, 
+                     origins = centroids,
+                     destinations = centroids,
+                     mode = "CAR")
+```
+
+```{r, include = FALSE}
+#generate bike skims
+bicycle_skim_alt <- travel_time_matrix(alternative_core, 
+                     origins = centroids,
+                     destinations = centroids,
+                     mode = "BICYCLE")
+```
+
+```{r,include = FALSE}
+#generate walk skims
+walk_skim_alt <- travel_time_matrix(alternative_core, 
+                     origins = centroids,
+                     destinations = centroids,
+                     mode = "WALK")
+```
+
+```{r, message=FALSE,warning=FALSE, echo=FALSE, include = FALSE}
+#generate transit skims
+
+transit_skim_alt <- travel_time_matrix(alternative_core, 
+                     origins = centroids,
+                     destinations = centroids,
+                     mode = "TRANSIT",
+                     departure_datetime = ymd_hm("2022-03-09 17:00"),
+                     breakdown = TRUE)
+```
+
+```{r}
+stop_r5()
+```
+
+```{r}
+# clean empty entries in transit skim
+transit_skim_alt <- transit_skim_alt %>%
+  filter(n_rides > 0)
+```
+
+```{r}
+#combine all skims into one file
+car_skim_alt <- car_skim_alt %>%
+  rename(car_time = travel_time)
+
+transit_skim_alt <- transit_skim_alt %>%
+  rename(transit_time = travel_time)
+
+walk_skim_alt <- walk_skim_alt %>%
+  rename(walk_time = travel_time)
+
+bicycle_skim_alt <- bicycle_skim_alt %>%
+  rename(bike_time = travel_time)
+
+all_skims_alt <- full_join(transit_skim_alt, car_skim_alt) %>%
+  full_join(walk_skim_alt)%>%
+  full_join(bicycle_skim_alt)
+
+write_csv(all_skims_alt, here("alternative/data/skims.csv"))
+```
