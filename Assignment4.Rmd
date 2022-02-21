@@ -397,6 +397,7 @@ total_diff <- car_diff %>%
 
 total_diff[which.min(total_diff$total_diff),]
 ```
+
 ```{r}
 # for walk
 total_diff <- walk_diff %>%
@@ -407,6 +408,7 @@ total_diff <- walk_diff %>%
 
 total_diff[which.min(total_diff$total_diff),]
 ```
+
 ```{r}
 # for bicycle
 total_diff <- bicycle_diff %>%
@@ -417,6 +419,7 @@ total_diff <- bicycle_diff %>%
 
 total_diff[which.min(total_diff$total_diff),]
 ```
+
 ```{r}
 # for transit
 total_diff <- transit_diff %>%
@@ -460,13 +463,14 @@ map_existing <- ggplot(zones) +
           fill = "red",
           color = "red") +
   scale_fill_gradientn(colours = map_palette,
-                       name = "Travel time\n(existing)") +
+                       name = "Travel time\n(existing)\nfor cars") +
   theme_void()
 
 map_existing
 ggsave("images/map_existing_car.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
+
 ```{r}
 
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -478,13 +482,14 @@ map_alt <- ggplot(zones) +
           fill = "red",
           color = "red") +
   scale_fill_gradientn(colours = map_palette,
-                       name = "Travel time\n(alternative)") +
+                       name = "Travel time\n(alternative)\nfor cars") +
   theme_void()
 
 map_alt
 ggsave("images/map_alt_car.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
+
 ```{r}
 
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -496,13 +501,13 @@ map_diff <- ggplot(zones) +
           fill = "red",
           color = "red") +
   scale_fill_gradientn(colours = map_palette,
-                       name = "Difference\nin travel times") +
+                       name = "Difference\nin travel times\nfor cars") +
   theme_void()
 
 map_diff
 
 ggsave("images/map_diff_car.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 # for transit
 
@@ -510,13 +515,13 @@ ggsave("images/map_diff_car.png",
 
 existing_max_diff <- transit_mat_exist %>%
   rownames_to_column("GEOID") %>%
-  select(GEOID, `49035112822`) %>%
-  rename(existing = `49035112822`)
+  select(GEOID, `49035111400`) %>%
+  rename(existing = `49035111400`)
 
 alt_max_diff <- transit_mat_alt %>%
   rownames_to_column("GEOID") %>%
-  select(GEOID, `49035112822`) %>%
-  rename(alt = `49035112822`)
+  select(GEOID, `49035111400`) %>%
+  rename(alt = `49035111400`)
 
 
 zones <- here("zones",
@@ -533,16 +538,16 @@ map_palette <- brewer.pal(5, "PuBuGn")
 map_existing <- ggplot(zones) +
   geom_sf(aes(fill = existing),
           color = NA) +
-  geom_sf(data = zones[zones$GEOID=="49035112822",],
+  geom_sf(data = zones[zones$GEOID=="49035111400",],
           fill = "red",
           color = "red") +
   scale_fill_gradientn(colours = map_palette,
-                       name = "Travel time\n(existing)") +
+                       name = "Travel time\n(existing)\nfor transit") +
   theme_void()
 
 map_existing
 ggsave("images/map_existing_transit.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
 ```{r}
@@ -552,17 +557,17 @@ map_palette <- brewer.pal(5, "PuBuGn")
 map_alt <- ggplot(zones) +
   geom_sf(aes(fill = alt),
           color = NA) +
-  geom_sf(data = zones[zones$GEOID=="49035112822",],
+  geom_sf(data = zones[zones$GEOID=="49035111400",],
           fill = "red",
           color = "red") +
   scale_fill_gradientn(colours = map_palette,
-                       name = "Travel time\n(alternative)") +
+                       name = "Travel time\n(alternative)\nfor transit)") +
   theme_void()
 
 map_alt
 
 ggsave("images/map_alternative_transit.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
 ```{r}
@@ -572,16 +577,16 @@ map_palette <- brewer.pal(5, "PuBuGn")
 map_diff <- ggplot(zones) +
   geom_sf(aes(fill = diff),
           color = NA) +
-  geom_sf(data = zones[zones$GEOID=="49035112822",],
+  geom_sf(data = zones[zones$GEOID=="49035111400",],
           fill = "red",
           color = "red") +
   scale_fill_gradientn(colours = map_palette,
-                       name = "Difference\nin travel times") +
+                       name = "Difference\nin travel times\nfor transit") +
   theme_void()
 
 map_diff
 
 ggsave("images/map_diff_transit.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
