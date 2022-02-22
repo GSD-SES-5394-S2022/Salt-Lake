@@ -38,13 +38,15 @@ jobs <- here("existing",
              "zone_data.csv") %>%
   read_csv() %>%
   select(GEOID, total_emp) %>%
-  mutate(GEOID = as.character(GEOID))
+  mutate(GEOID = as.character(GEOID))%>%
+  mutate(id = GEOID)%>%
+  select(id, total_emp)
 
 centroids <- here("zones",
                   "centroids.geojson") %>%
   st_read() %>%
-  rename(GEOID = id)%>%
   left_join(jobs)
+
 ```
 
 #Set up r5r core
@@ -55,25 +57,181 @@ existing_core <- here("existing",
   setup_r5(verbose = FALSE)
 ```
 
-#Calculate accessibility for cars
+#Calculate accessibility for cars - Existing
+
+```{r}
+car_access_existing <- accessibility(existing_core,
+                                     origins = centroids,
+                                     destinations = centroids,
+                                     opportunities_colname = 'total_emp',
+                                     mode = "CAR",
+                                     decay_function = "logistic",
+                                     cutoffs = 35,
+                                     decay_value = 5, 
+                                     verbose = FALSE)
+
+```
+
+#Calculate accessibility for transit - Existing
+
+```{r}
+transit_access_existing <- accessibility(existing_core,
+                                     origins = centroids,
+                                     destinations = centroids,
+                                     opportunities_colname = 'total_emp',
+                                     mode = "TRANSIT",
+                                     decay_function = "logistic",
+                                     cutoffs = 50,
+                                     decay_value = 8, 
+                                     verbose = FALSE,
+                                     departure_datetime = 
+                                       ymd_hm("2022-03-09 17:00"),
+                                     time_window = 120)
+```
+
+
+```{r}
+stop_r5()
+
+```
+
+
+#Set up r5r core - alternative
+
+```{r}
+alternative_core <- here("alternative",
+                      "networks") %>%
+  setup_r5(verbose = FALSE)
+```
+#Calculate accessibility for cars - Alternative
+
+```{r}
+car_access_alternative <- accessibility(alternative_core,
+                                     origins = centroids,
+                                     destinations = centroids,
+                                     opportunities_colname = 'total_emp',
+                                     mode = "CAR",
+                                     decay_function = "logistic",
+                                     cutoffs = 35,
+                                     decay_value = 5, 
+                                     verbose = FALSE)
+
+```
+
+#Calculate accessibility for transit - Alternative
+
+```{r}
+transit_access_alternative <- accessibility(alternative_core,
+                                     origins = centroids,
+                                     destinations = centroids,
+                                     opportunities_colname = 'total_emp',
+                                     mode = "TRANSIT",
+                                     decay_function = "logistic",
+                                     cutoffs = 50,
+                                     decay_value = 8, 
+                                     verbose = FALSE,
+                                     departure_datetime = 
+                                       ymd_hm("2022-03-09 17:00"),
+                                     time_window = 120)
+```
+
+```{r}
+stop_r5()
+
+```
+
+
+#Compare auto and transit accessibility - Existing
+
+```{r}
+car_access_existing <- car_access_existing %>%
+  select(from_id, accessibility) %>%
+  rename(GEOID = from_id,
+         car_access = accessibility)
+
+transit_access_existing <- transit_access_existing %>%
+  select(from_id, accessibility) %>%
+  rename(GEOID = from_id,
+         transit_access = accessibility)
+
+access_compare_ex <- left_join(car_access_existing, transit_access_existing) %>%
+  mutate(ratio = transit_access / car_access)
+```
+
+#Compare auto and transit accessibility - Alternative
+
+```{r}
+car_access_alternative <- car_access_alternative %>%
+  select(from_id, accessibility) %>%
+  rename(GEOID = from_id,
+         car_access = accessibility)
+
+transit_access_alternative <- transit_access_alternative %>%
+  select(from_id, accessibility) %>%
+  rename(GEOID = from_id,
+         transit_access = accessibility)
+
+access_compare_alt <- left_join(car_access_alternative, transit_access_alternative) %>%
+  mutate(ratio = transit_access / car_access)
+```
+
+#summarize existing accessibility
 
 ```{r}
 
 ```
 
-#Calculate accessibility for transit
+#summarize alternative accessibility
 
 ```{r}
 
 ```
 
-#Compare auto and transit accessibility
+#Chloropleth map showing spatial variation in car accessibility - existing
+
 ```{r}
 
 ```
+
+#Chloropleth map showing spatial variation in car accessibility - alternative
+
+```{r}
+
+```
+
+#Chloropleth map showing spatial variation in transit accessibility - existing
+
+```{r}
+
+```
+
+#Chloropleth map showing spatial variation in transit accessibility - alternative
+
+```{r}
+
+```
+
+#Chloropleth map on spatial variation in ratio of car and transit accessibility - existing
+
+```{r}
+
+```
+
+#Chloropleth map on spatial variation in ratio of car and transit accessibility - alternative
+
+```{r}
+
+```
+
+
 
 #Save your results
 ```{r}
-
+write_csv(access_compare_ex, file = here("existing", 
+                                      "data",
+                                      "access_compare_ex.csv"))
+write_csv(access_compare_alt, file = here("alternative", 
+                                      "data",
+                                      "access_compare_alt.csv"))
 ```
 
