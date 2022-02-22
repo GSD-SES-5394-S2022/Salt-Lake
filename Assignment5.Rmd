@@ -1,0 +1,70 @@
+---
+title: "Assignment 5"
+author: "Charuvi Begwani, Aijing Li"
+date: "2/22/2022"
+output: html_document
+---
+
+#Accessibility 
+In this file, we calculate accessibility to jobs from the centroid of each traffic analysis zone for each mode in the existing and alternate scenario.
+
+
+#Load relevant libraries
+
+```{r}
+options(java.parameters = '-Xmx2G')
+
+library(r5r)
+library(here)
+library(tidyverse)
+library(sf)
+library(lubridate)
+```
+
+#Set up centroid information
+
+```{r}
+jobs <- here("existing",
+             "data",
+             "zone_data.csv") %>%
+  read_csv() %>%
+  select(GEOID, total_emp) %>%
+  mutate(GEOID = as.character(GEOID))
+
+centroids <- here("zones",
+                  "centroids.geojson") %>%
+  st_read() %>%
+  left_join(jobs) %>%
+  rename(id = GEOID)
+```
+
+#Set up r5r core
+
+```{r}
+existing_core <- here("existing",
+                      "networks") %>%
+  setup_r5(verbose = FALSE)
+```
+
+#Calculate accessibility for cars
+
+```{r}
+
+```
+
+#Calculate accessibility for transit
+
+```{r}
+
+```
+
+#Compare auto and transit accessibility
+```{r}
+
+```
+
+#Save your results
+```{r}
+
+```
+
