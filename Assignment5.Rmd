@@ -14,11 +14,20 @@ In this file, we calculate accessibility to jobs from the centroid of each traff
 ```{r}
 options(java.parameters = '-Xmx2G')
 
-library(r5r)
-library(here)
 library(tidyverse)
 library(sf)
+library(tigris)
+library(osmdata)
+library(devtools)
+library(tidytransit)
+library(here)
+library(r5r)
 library(lubridate)
+library(scenRios)
+library(knitr)
+library(ggthemes)
+library(RColorBrewer)
+
 ```
 
 #Set up centroid information
@@ -34,8 +43,8 @@ jobs <- here("existing",
 centroids <- here("zones",
                   "centroids.geojson") %>%
   st_read() %>%
-  left_join(jobs) %>%
-  rename(id = GEOID)
+  rename(GEOID = id)%>%
+  left_join(jobs)
 ```
 
 #Set up r5r core
