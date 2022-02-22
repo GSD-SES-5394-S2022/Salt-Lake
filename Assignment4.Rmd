@@ -318,6 +318,9 @@ all_skims_alt %>%
             `Standard deviation` = sd(value, na.rm=TRUE),
             Median = median(value, median(value, na.rm=TRUE)))
 ```
+
+# Compare skims
+# Create OD matrix 
 ```{r}
 car_mat_exist <- all_skims_exs %>% 
   select(fromId, toId, car_time) %>%
@@ -430,7 +433,7 @@ total_diff <- transit_diff %>%
 
 total_diff[which.min(total_diff$total_diff),]
 ```
-
+# Generate Maps for two scenarios and difference in travel time
 # for car 
 ```{r}
 
@@ -590,3 +593,163 @@ ggsave("images/map_diff_transit.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
+# for walk
+
+```{r}
+
+existing_max_diff <- walk_mat_exist %>%
+  rownames_to_column("GEOID") %>%
+  select(GEOID, `49035112822`) %>%
+  rename(existing = `49035112822`)
+
+alt_max_diff <- walk_mat_alt %>%
+  rownames_to_column("GEOID") %>%
+  select(GEOID, `49035112822`) %>%
+  rename(alt = `49035112822`)
+
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read() %>%
+  inner_join(existing_max_diff) %>%
+  inner_join(alt_max_diff) %>%
+  mutate(diff = alt - existing)
+```
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+
+map_existing <- ggplot(zones) +
+  geom_sf(aes(fill = existing),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Travel time\n(existing)\nfor walking") +
+  theme_void()
+
+map_existing
+ggsave("images/map_existing_walk.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+```{r}
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map_alt <- ggplot(zones) +
+  geom_sf(aes(fill = alt),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Travel time\n(alternative)\nfor walking") +
+  theme_void()
+
+map_alt
+ggsave("images/map_alt_walking.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+```{r}
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map_diff <- ggplot(zones) +
+  geom_sf(aes(fill = diff),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Difference\nin travel times\nfor walking") +
+  theme_void()
+
+map_diff
+
+ggsave("images/map_diff_walk.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+# for bicycle
+```{r}
+
+existing_max_diff <- bicycle_mat_exist %>%
+  rownames_to_column("GEOID") %>%
+  select(GEOID, `49035112822`) %>%
+  rename(existing = `49035112822`)
+
+alt_max_diff <- bicycle_mat_alt %>%
+  rownames_to_column("GEOID") %>%
+  select(GEOID, `49035112822`) %>%
+  rename(alt = `49035112822`)
+
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read() %>%
+  inner_join(existing_max_diff) %>%
+  inner_join(alt_max_diff) %>%
+  mutate(diff = alt - existing)
+```
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+
+map_existing <- ggplot(zones) +
+  geom_sf(aes(fill = existing),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Travel time\n(existing)\nfor bicycles") +
+  theme_void()
+
+map_existing
+ggsave("images/map_existing_bicycle.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+```{r}
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map_alt <- ggplot(zones) +
+  geom_sf(aes(fill = alt),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Travel time\n(alternative)\nfor bicycles") +
+  theme_void()
+
+map_alt
+ggsave("images/map_alt_bicycles.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+```{r}
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map_diff <- ggplot(zones) +
+  geom_sf(aes(fill = diff),
+          color = NA) +
+  geom_sf(data = zones[zones$GEOID=="49035112822",],
+          fill = "red",
+          color = "red") +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Difference\nin travel times\nfor bicycles") +
+  theme_void()
+
+map_diff
+
+ggsave("images/map_diff_bicycles.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
