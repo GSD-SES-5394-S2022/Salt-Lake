@@ -272,16 +272,15 @@ transit_skim_alt <- transit_skim_alt %>%
 ```{r}
 #combine all skims into one file
 car_skim_alt <- car_skim_alt %>%
-  rename(car_time = travel_time)
-
+   rename(car_time = travel_time)
 transit_skim_alt <- transit_skim_alt %>%
-  rename(transit_time = travel_time)
+   rename(transit_time = travel_time)
 
 walk_skim_alt <- walk_skim_alt %>%
-  rename(walk_time = travel_time)
+   rename(walk_time = travel_time)
 
 bicycle_skim_alt <- bicycle_skim_alt %>%
-  rename(bike_time = travel_time)
+   rename(bike_time = travel_time)
 
 all_skims_alt <- full_join(transit_skim_alt, car_skim_alt) %>%
   full_join(walk_skim_alt)%>%
@@ -420,7 +419,7 @@ total_diff <- bicycle_diff %>%
   select(total_diff) %>%
   rownames_to_column("GEOID")
 
-total_diff[which.min(total_diff$total_diff),]
+total_diff[which.max(total_diff$total_diff),]
 ```
 
 ```{r}
@@ -679,13 +678,13 @@ ggsave("images/map_diff_walk.png",
 
 existing_max_diff <- bicycle_mat_exist %>%
   rownames_to_column("GEOID") %>%
-  select(GEOID, `49035112822`) %>%
-  rename(existing = `49035112822`)
+  select(GEOID, `49035112302`) %>%
+  rename(existing = `49035112302`)
 
 alt_max_diff <- bicycle_mat_alt %>%
   rownames_to_column("GEOID") %>%
-  select(GEOID, `49035112822`) %>%
-  rename(alt = `49035112822`)
+  select(GEOID, `49035112302`) %>%
+  rename(alt = `49035112302`)
 
 
 zones <- here("zones",
@@ -703,7 +702,7 @@ map_palette <- brewer.pal(5, "PuBuGn")
 map_existing <- ggplot(zones) +
   geom_sf(aes(fill = existing),
           color = NA) +
-  geom_sf(data = zones[zones$GEOID=="49035112822",],
+  geom_sf(data = zones[zones$GEOID=="49035112302",],
           fill = "red",
           color = "red") +
   scale_fill_gradientn(colours = map_palette,
@@ -722,7 +721,7 @@ map_palette <- brewer.pal(5, "PuBuGn")
 map_alt <- ggplot(zones) +
   geom_sf(aes(fill = alt),
           color = NA) +
-  geom_sf(data = zones[zones$GEOID=="49035112822",],
+  geom_sf(data = zones[zones$GEOID=="49035112302",],
           fill = "red",
           color = "red") +
   scale_fill_gradientn(colours = map_palette,
@@ -741,7 +740,7 @@ map_palette <- brewer.pal(5, "PuBuGn")
 map_diff <- ggplot(zones) +
   geom_sf(aes(fill = diff),
           color = NA) +
-  geom_sf(data = zones[zones$GEOID=="49035112822",],
+  geom_sf(data = zones[zones$GEOID=="49035112302",],
           fill = "red",
           color = "red") +
   scale_fill_gradientn(colours = map_palette,
