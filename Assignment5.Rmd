@@ -11,7 +11,7 @@ In this file, we calculate accessibility to jobs from the centroid of each traff
 
 #Load relevant libraries
 
-```{r}
+```{r, message= FALSE, warning = FALSE}
 options(java.parameters = '-Xmx2G')
 
 library(tidyverse)
@@ -178,36 +178,104 @@ access_compare_alt <- left_join(car_access_alternative, transit_access_alternati
 #summarize existing accessibility
 
 ```{r}
+summary(car_access_existing)
+sd(car_access_existing$car_access)
 
+summary(access_compare_ex)
+sd(access_compare_ex$ratio)
 ```
 
 #summarize alternative accessibility
 
 ```{r}
+summary(car_access_alternative)
+sd(car_access_alternative$car_access)
 
+summary(access_compare_alt)
+sd(access_compare_alt$ratio)
 ```
 
 #Chloropleth map showing spatial variation in car accessibility - existing
 
 ```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+
+map_existing <- ggplot(zones) +
+  geom_sf(aes(fill = car_access_existing$car_access),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Car access\n(existing)", 
+                       label=scales::comma) +
+  theme_void()
+
+map_existing
+ggsave("images/map_existing_caraccess.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
 
 ```
 
 #Chloropleth map showing spatial variation in car accessibility - alternative
 
 ```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+
+map_alt <- ggplot(zones) +
+  geom_sf(aes(fill = car_access_alternative$car_access),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Car access\n(alternative)", 
+                       label=scales::comma) +
+  theme_void()
+
+map_alt
+ggsave("images/map_alternative_caraccess.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
 
 ```
 
 #Chloropleth map showing spatial variation in transit accessibility - existing
 
 ```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+
+map_existing_transit <- ggplot(zones) +
+  geom_sf(aes(fill = transit_access_existing$transit_access),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Transit access\n(existing)", 
+                       label=scales::comma) +
+  theme_void()
+
+map_existing_transit
+ggsave("images/map_existing_transitaccess.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
+
 
 ```
 
 #Chloropleth map showing spatial variation in transit accessibility - alternative
 
 ```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map_alternative_transit <- ggplot(zones) +
+  geom_sf(aes(fill = transit_access_alternative$transit_access),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Transit access\n(alternative)", 
+                       label=scales::comma) +
+  theme_void()
+
+map_alternative_transit
+ggsave("images/map_alternative_transitaccess.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
 
 ```
 
