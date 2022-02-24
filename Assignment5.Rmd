@@ -282,12 +282,42 @@ ggsave("images/map_alternative_transitaccess.png",
 #Chloropleth map on spatial variation in ratio of car and transit accessibility - existing
 
 ```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+
+map_existing_ratio <- ggplot(zones) +
+  geom_sf(aes(fill = access_compare_ex$ratio),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Car to transit access ratio\n(existing)", 
+                       label=scales::comma) +
+  theme_void()
+
+map_existing_ratio
+ggsave("images/map_existing_ratio.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
 
 ```
 
 #Chloropleth map on spatial variation in ratio of car and transit accessibility - alternative
 
 ```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+
+map_alternative_ratio <- ggplot(zones) +
+  geom_sf(aes(fill = access_compare_alt$ratio),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Car to transit access ratio\n(alternative)", 
+                       label=scales::comma) +
+  theme_void()
+
+map_existing_ratio
+ggsave("images/map_alternative_ratio.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
 
 ```
 
