@@ -66,7 +66,7 @@ car_access_existing <- accessibility(existing_core,
                                      opportunities_colname = 'total_emp',
                                      mode = "CAR",
                                      decay_function = "logistic",
-                                     cutoffs = 35,
+                                     cutoffs = 45,
                                      decay_value = 5, 
                                      verbose = FALSE)
 
@@ -81,8 +81,8 @@ transit_access_existing <- accessibility(existing_core,
                                      opportunities_colname = 'total_emp',
                                      mode = "TRANSIT",
                                      decay_function = "logistic",
-                                     cutoffs = 50,
-                                     decay_value = 8, 
+                                     cutoffs = 45,
+                                     decay_value = 5, 
                                      verbose = FALSE,
                                      departure_datetime = 
                                        ymd_hm("2022-03-09 17:00"),
@@ -95,6 +95,22 @@ stop_r5()
 
 ```
 
+#Compare auto and transit accessibility - Existing
+
+```{r}
+car_access_existing <- car_access_existing %>%
+  select(from_id, accessibility) %>%
+  rename(GEOID = from_id,
+         car_access = accessibility)
+
+transit_access_existing <- transit_access_existing %>%
+  select(from_id, accessibility) %>%
+  rename(GEOID = from_id,
+         transit_access = accessibility)
+
+access_compare_ex <- left_join(car_access_existing, transit_access_existing) %>%
+  mutate(ratio = transit_access / car_access)
+```
 
 #Set up r5r core - alternative
 
@@ -112,7 +128,7 @@ car_access_alternative <- accessibility(alternative_core,
                                      opportunities_colname = 'total_emp',
                                      mode = "CAR",
                                      decay_function = "logistic",
-                                     cutoffs = 35,
+                                     cutoffs = 45,
                                      decay_value = 5, 
                                      verbose = FALSE)
 
@@ -127,8 +143,8 @@ transit_access_alternative <- accessibility(alternative_core,
                                      opportunities_colname = 'total_emp',
                                      mode = "TRANSIT",
                                      decay_function = "logistic",
-                                     cutoffs = 50,
-                                     decay_value = 8, 
+                                     cutoffs = 45,
+                                     decay_value = 5, 
                                      verbose = FALSE,
                                      departure_datetime = 
                                        ymd_hm("2022-03-09 17:00"),
@@ -138,24 +154,6 @@ transit_access_alternative <- accessibility(alternative_core,
 ```{r}
 stop_r5()
 
-```
-
-
-#Compare auto and transit accessibility - Existing
-
-```{r}
-car_access_existing <- car_access_existing %>%
-  select(from_id, accessibility) %>%
-  rename(GEOID = from_id,
-         car_access = accessibility)
-
-transit_access_existing <- transit_access_existing %>%
-  select(from_id, accessibility) %>%
-  rename(GEOID = from_id,
-         transit_access = accessibility)
-
-access_compare_ex <- left_join(car_access_existing, transit_access_existing) %>%
-  mutate(ratio = transit_access / car_access)
 ```
 
 #Compare auto and transit accessibility - Alternative
