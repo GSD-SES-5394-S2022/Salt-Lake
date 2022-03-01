@@ -174,18 +174,24 @@ access_compare_alt <- left_join(car_access_alternative, transit_access_alternati
 ```
 
 #summarize existing accessibility
+```{r}
+typeof(car_access_existing$GEOID)
+```
+
 
 ```{r}
-summary(car_access_existing)
-sd(car_access_existing$car_access)
 
-summary(access_compare_ex)
-sd(access_compare_ex$ratio)
+summary(car_access_existing)
+
+access_compare_ex_copy <- access_compare_ex[access_compare_ex$GEOID != "49035110104" & access_compare_ex$GEOID != "49035100200" & access_compare_ex$GEOID != "49035114800" & access_compare_ex$GEOID != "49045130600"]
+summary(access_compare_ex_copy)
+sd(access_compare_ex_copy$ratio)
 ```
 
 #summarize alternative accessibility
 
 ```{r}
+
 summary(car_access_alternative)
 sd(car_access_alternative$car_access)
 
