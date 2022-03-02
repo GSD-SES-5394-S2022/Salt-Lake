@@ -6,7 +6,7 @@ output: html_document
 ---
 
 #Accessibility 
-In this file, we calculate accessibility to jobs from the centroid of each traffic analysis zone for each mode in the existing and alternate scenario.
+In this file, we calculate and compare accessibility to employment opportunities from the centroid of each traffic analysis zone for cars and transit in the existing and alternate scenarios.
 
 
 #Load relevant libraries
@@ -174,10 +174,9 @@ access_compare_alt <- left_join(car_access_alternative, transit_access_alternati
 ```
 
 #summarize existing accessibility
+We have excluded four tracts for the summary calculation as these have no car and transit accessibility probably due to the presence of natural features. These include the tracts in the eastern part of the MSA as well as Tooele County on the west.
 
 ```{r}
-
-summary(car_access_existing)
 
 access_compare_ex_copy <- access_compare_ex[access_compare_ex$GEOID != "49035110104" & access_compare_ex$GEOID != "49035100200" & access_compare_ex$GEOID != "49035114800" & access_compare_ex$GEOID != "49045130600"]
 summary(access_compare_ex_copy)
@@ -185,16 +184,15 @@ sd(access_compare_ex_copy$ratio)
 ```
 
 #summarize alternative accessibility
+We have excluded four tracts for the summary calculation as these have no car and transit accessibility probably due to the presence of natural features. These include the tracts in the eastern part of the MSA as well as Tooele County on the west.
 
 ```{r}
 
-summary(car_access_alternative)
-sd(car_access_alternative$car_access)
-
 access_compare_alt_copy <- access_compare_alt[access_compare_alt$GEOID != "49035110104" & access_compare_alt$GEOID != "49035100200" & access_compare_alt$GEOID != "49035114800" & access_compare_alt$GEOID != "49045130600"]
 
-summary(access_compare_alt_copy)
+summary(access_compare_alt_copy )
 sd(access_compare_alt_copy$ratio)
+sd(car_access_alternative$car_access)
 ```
 
 #Chloropleth map showing spatial variation in car accessibility - existing
@@ -291,7 +289,7 @@ map_existing_ratio <- ggplot(zones) +
   geom_sf(aes(fill = access_compare_ex$ratio),
           color = NA) +
   scale_fill_gradientn(colours = map_palette,
-                       name = "Car to transit access ratio\n(existing)", 
+                       name = "Car to transit access\nratio (existing)", 
                        label=scales::comma) +
   theme_void()
 
@@ -312,11 +310,11 @@ map_alternative_ratio <- ggplot(zones) +
   geom_sf(aes(fill = access_compare_alt$ratio),
           color = NA) +
   scale_fill_gradientn(colours = map_palette,
-                       name = "Car to transit access ratio\n(alternative)", 
+                       name = "Car to transit access\nratio (alternative)", 
                        label=scales::comma) +
   theme_void()
 
-map_existing_ratio
+map_alternative_ratio
 ggsave("images/map_alternative_ratio.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 
