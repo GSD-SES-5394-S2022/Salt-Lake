@@ -193,7 +193,7 @@ sd(car_access_alternative$car_access)
 
 access_compare_alt_copy <- access_compare_alt[access_compare_alt$GEOID != "49035110104" & access_compare_alt$GEOID != "49035100200" & access_compare_alt$GEOID != "49035114800" & access_compare_alt$GEOID != "49045130600"]
 
-summary(access_compare_alt_copy )
+summary(access_compare_alt_copy)
 sd(access_compare_alt_copy$ratio)
 ```
 
