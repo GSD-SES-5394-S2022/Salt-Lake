@@ -1,0 +1,70 @@
+---
+title: "Assignment 6"
+author: "Aijing Li, Charuvi Begwani"
+date: "3/4/2022"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(here)
+library(tidyverse)
+library(sf)
+library(modelr)
+library(jtools)
+library(dplyr)
+```
+
+```{r}
+access <- here("existing",
+               "data",
+               "access_compare_ex.csv") %>%
+  read_csv()
+
+zones <- here("existing",
+               "data",
+               "zone_data.csv") %>%
+  read_csv()
+```
+
+```{r}
+model_data <- left_join(zones, access) %>%
+  mutate(pct_big_hh = (hh_3personE + hh_4person_plusE) / total_hhsE,
+         pct_lo_inc = inc_quint_20 / total_hhsE,
+         pct_hi_inc = inc_quint_100 / total_hhsE,
+         pct_no_veh = no_vehE / total_hhsE) %>%
+  select(GEOID, pct_big_hh, pct_lo_inc, pct_hi_inc, ratio, pct_no_veh)
+
+```
+Becasue the tract 49035980000, 49035112818 and 49045980000 have no households, we exclude these three tracts from analysis of impacts of our proposal. We also exclude tract 49035110104, 49035100200, and 49035114800 becasue they are not accessible by cars according to OSM data.
+```{r}
+model_data <- filter(model_data, 
+                       model_data$GEOID != "49035980000" & 
+                       model_data$GEOID != "49045980000" & 
+                       model_data$GEOID != "49035112818" & 
+                       model_data$GEOID != "49035110104" & 
+                       model_data$GEOID != "49035100200" & 
+                       model_data$GEOID != "49035114800")
+
+```
+
+
+
+
+```{r}
+ggplot(model_data, aes(x = pct_lo_inc, y = pct_no_veh)) +
+  geom_point(size = 1, color = "blue") +
+  geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
+
+```
+```{r}
+model1 <- lm(pct_no_veh ~ pct_big_hh + pct_lo_inc + pct_hi_inc + ratio, data = model_data)
+
+export_summs(model1)
+```
+
+```{r}
+model2 <- lm(pct_no_veh ~ pct_big_hh + pct_lo_inc + ratio, data = model_data)
+
+export_summs(model1, model2)
+```
+
