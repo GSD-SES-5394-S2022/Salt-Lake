@@ -64,7 +64,45 @@ export_summs(model1)
 
 ```{r}
 model2 <- lm(pct_no_veh ~ pct_big_hh + pct_lo_inc + ratio, data = model_data)
+model3 <- lm(pct_no_veh ~ pct_big_hh + pct_lo_inc, data = model_data)
+export_summs(model1, model2, model3)
+```
+```{r}
+alt_access <- here("alternative",
+               "data",
+               "access_compare_alt.csv") %>%
+  read_csv()
 
-export_summs(model1, model2)
+alt_zones <- here("alternative",
+               "data",
+               "zone_data.csv") %>%
+  read_csv() %>%
+  left_join(access) %>%
+  mutate(pct_big_hh = (hh_3personE + hh_4person_plusE) / total_hhsE,
+         pct_lo_inc = inc_quint_20 / total_hhsE,
+         pct_hi_inc = inc_quint_100 / total_hhsE,
+         pct_no_veh = no_vehE / total_hhsE) %>%
+  add_predictions(model = model2) %>%
+  mutate(pct_no_veh = pred) %>%
+  mutate(no_vehE = round(total_hhsE * pct_no_veh)) 
+```
+# Analysis
+## Describtive Data 
+```{r}
+summary(alt_zones$pred)
+sd(alt_zones$pred)
+```
+```{r}
+summary(model_data$pct_no_veh)
+sd(model_data$pct_no_veh)
+```
+```{r}
+coef_names <- c("Percentage of households with three or more people" = "pct_big_hh",
+                "Percentage of households in the first income quintile" = "pct_lo_inc",
+                "Percentage of housholds in the fifth income quintile" = "pct_hi_inc",
+                "Ratio of transit accessibility to car accessibility" = "ratio"
+)
+
+plot_summs(model1, model2, model3, robust = "HC3", coefs = coef_names)
 ```
 
