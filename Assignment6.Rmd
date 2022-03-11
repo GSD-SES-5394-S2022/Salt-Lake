@@ -51,14 +51,20 @@ model_data <- filter(model_data,
 
 ```{r}
 ggplot(model_data, aes(x = pct_big_hh, y = pct_no_veh)) +
-  geom_point(size = 1, color = "blue") +
+  geom_point(size = 1, color = "lightblue") +
   geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
+
+ggsave("images/lm_pctbighh_noveh.png",
+       width = 200, height = 200, units = "mm",dpi = 300)
 ```
 
 ```{r}
 ggplot(model_data, aes(x = pct_hi_inc, y = pct_no_veh)) +
-  geom_point(size = 1, color = "blue") +
+  geom_point(size = 1, color = "lightblue") +
   geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
+
+ggsave("images/lm_pcthiinc_noveh.png",
+       width = 200, height = 200, units = "mm",dpi = 300)
 
 ```
 
@@ -66,14 +72,46 @@ ggplot(model_data, aes(x = pct_hi_inc, y = pct_no_veh)) +
 
 ```{r}
 ggplot(model_data, aes(x = pct_lo_inc, y = pct_no_veh)) +
-  geom_point(size = 1, color = "blue") +
+  geom_point(size = 1, color = "lightblue") +
   geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
+
+ggsave("images/lm_pctloinc_noveh.png",
+       width = 200, height = 200, units = "mm",dpi = 300)
 
 ```
 ```{r}
-ggplot(model_data, aes(x=pct_lo_inc)) + 
-  geom_histogram()
+hist <- ggplot(model_data, aes(x=pct_lo_inc)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
 
+hist +theme_bw(base_size = 11)
+
+ggsave("images/hist_lo_inc.png",
+       width = 200, height = 200, units = "mm",dpi = 300)
+```
+```{r}
+hist <- ggplot(model_data, aes(x=pct_hi_inc)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11)
+
+ggsave("images/hist_hi_inc.png",
+       width = 200, height = 200, units = "mm",dpi = 300)
+```
+
+```{r}
+hist <- ggplot(model_data, aes(x=pct_big_hh)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11)
+
+ggsave("images/hist_big_hh.png",
+       width = 200, height = 200, units = "mm",dpi = 300)
+```
+```{r}
+hist <- ggplot(model_data, aes(x=pct_big_hh)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11)
 ```
 
 
