@@ -51,17 +51,21 @@ model_data <- filter(model_data,
 
 ```{r}
 ggplot(model_data, aes(x = pct_big_hh, y = pct_no_veh)) +
-  geom_point(size = 1, color = "lightblue") +
-  geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
-
+  geom_point(size = 2, color = "lightblue") +
+  geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm") +
+  theme_minimal() +
+  labs(x = "Percentage of big households", y = "Percentage of no-vehicle households")
+  
 ggsave("images/lm_pctbighh_noveh.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
 ```{r}
 ggplot(model_data, aes(x = pct_hi_inc, y = pct_no_veh)) +
-  geom_point(size = 1, color = "lightblue") +
-  geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
+  geom_point(size = 2, color = "lightblue") +
+  geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")+
+  theme_minimal() +
+  labs(x = "Percentage of high-income households", y = "Percentage of no-vehicle households")
 
 ggsave("images/lm_pcthiinc_noveh.png",
        width = 20, height = 15, units = "cm",dpi = 300)
@@ -72,8 +76,10 @@ ggsave("images/lm_pcthiinc_noveh.png",
 
 ```{r}
 ggplot(model_data, aes(x = pct_lo_inc, y = pct_no_veh)) +
-  geom_point(size = 1, color = "lightblue") +
-  geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
+  geom_point(size = 2, color = "lightblue") +
+  geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm") +
+  theme_minimal() +
+  labs(x = "Percentage of low-income households", y = "Percentage of no-vehicle households")
 
 ggsave("images/lm_pctloinc_noveh.png",
        width = 20, height = 15, units = "cm",dpi = 300)
