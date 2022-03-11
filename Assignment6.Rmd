@@ -275,14 +275,16 @@ ggsave("images/map_alternative_no_veh_estimate.png",
 
 map_palette <- brewer.pal(5, "YlOrBr")
 
-map_diff2 <- ggplot(zones) +
+map_diff_model2 <- ggplot(zones) +
   geom_sf(aes(fill = no_veh_diff),
           color = NA) +
   scale_fill_gradientn(colours = map_palette,
                        name = "difference in percentage of\nno-vehicle households\nbefore/after the intervention") +
   theme_void()
 
-map_diff2
+map_diff_model2
+ggsave("images/map_no_veh_diff_model2.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
 #Apply model 3 
