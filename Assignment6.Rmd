@@ -37,7 +37,7 @@ model_data <- left_join(zones, access) %>%
   select(GEOID, pct_big_hh, pct_lo_inc, pct_hi_inc, ratio, pct_no_veh)
 
 ```
-Becasue the tract 49035980000, 49035112818 and 49045980000 have no households, we exclude these three tracts from analysis of impacts of our proposal. We also exclude tract 49035110104, 49035100200, and 49035114800 becasue they are not accessible by cars according to OSM data.
+Since the tracts 49035980000, 49035112818 and 49045980000 have no households, we exclude these three tracts from analysis of impacts of our proposal. We also exclude tracts 49035110104, 49035100200, and 49035114800 because they are not accessible by cars according to the OSM data on roadways we have used for this assignment.
 ```{r}
 model_data$pct_big_hh[is.nan(model_data$pct_big_hh)] <- 0
 model_data$pct_lo_inc[is.nan(model_data$pct_lo_inc)] <- 0
@@ -55,7 +55,7 @@ ggplot(model_data, aes(x = pct_big_hh, y = pct_no_veh)) +
   geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
 
 ggsave("images/lm_pctbighh_noveh.png",
-       width = 200, height = 200, units = "mm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
 ```{r}
@@ -64,7 +64,7 @@ ggplot(model_data, aes(x = pct_hi_inc, y = pct_no_veh)) +
   geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
 
 ggsave("images/lm_pcthiinc_noveh.png",
-       width = 200, height = 200, units = "mm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 
 ```
 
@@ -76,7 +76,7 @@ ggplot(model_data, aes(x = pct_lo_inc, y = pct_no_veh)) +
   geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
 
 ggsave("images/lm_pctloinc_noveh.png",
-       width = 200, height = 200, units = "mm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 
 ```
 ```{r}
@@ -86,7 +86,7 @@ hist <- ggplot(model_data, aes(x=pct_lo_inc)) +
 hist +theme_bw(base_size = 11)
 
 ggsave("images/hist_lo_inc.png",
-       width = 200, height = 200, units = "mm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 ```{r}
 hist <- ggplot(model_data, aes(x=pct_hi_inc)) + 
@@ -95,7 +95,7 @@ hist <- ggplot(model_data, aes(x=pct_hi_inc)) +
 hist +theme_bw(base_size = 11)
 
 ggsave("images/hist_hi_inc.png",
-       width = 200, height = 200, units = "mm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
 ```{r}
@@ -105,7 +105,7 @@ hist <- ggplot(model_data, aes(x=pct_big_hh)) +
 hist +theme_bw(base_size = 11)
 
 ggsave("images/hist_big_hh.png",
-       width = 200, height = 200, units = "mm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 ```{r}
 hist <- ggplot(model_data, aes(x=pct_big_hh)) + 
@@ -182,6 +182,9 @@ coef_names <- c("Percentage of households with three or more people" = "pct_big_
 )
 
 plot_summs(model1, model2, model3, robust = "HC3", coefs = coef_names)
+
+ggsave("images/model_reg.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
 ```{r}
