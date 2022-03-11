@@ -4,6 +4,7 @@ author: "Aijing Li, Charuvi Begwani"
 date: "3/4/2022"
 output: html_document
 ---
+#Load relevant libraries
 
 ```{r, message=FALSE, warning=FALSE}
 library(here)
@@ -16,6 +17,8 @@ library(ggthemes)
 library(RColorBrewer)
 ```
 
+#Load relevant data from previous assignments
+
 ```{r}
 access <- here("existing",
                "data",
@@ -27,6 +30,7 @@ zones <- here("existing",
                "zone_data.csv") %>%
   read_csv()
 ```
+#Select model variables
 
 ```{r}
 model_data <- left_join(zones, access) %>%
@@ -37,6 +41,8 @@ model_data <- left_join(zones, access) %>%
   select(GEOID, pct_big_hh, pct_lo_inc, pct_hi_inc, ratio, pct_no_veh)
 
 ```
+#Cleaning up data to exclude/adjust tracts with no households and no car accessibility
+
 Since the tracts 49035980000, 49035112818 and 49045980000 have no households, we exclude these three tracts from analysis of impacts of our proposal. We also exclude tracts 49035110104, 49035100200, and 49035114800 because they are not accessible by cars according to the OSM data on roadways we have used for this assignment.
 ```{r}
 model_data$pct_big_hh[is.nan(model_data$pct_big_hh)] <- 0
@@ -48,6 +54,8 @@ model_data <- filter(model_data,
                        !is.infinite(model_data$ratio))
 
 ```
+
+#visualize model variables to determine correlation of each independent variable with the dependent variable - percentage of no-vehicle households
 
 ```{r}
 ggplot(model_data, aes(x = pct_big_hh, y = pct_no_veh)) +
@@ -85,11 +93,18 @@ ggsave("images/lm_pctloinc_noveh.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 
 ```
+# create histogram charts to explore distribution of our variables
+
 ```{r}
 hist <- ggplot(model_data, aes(x=pct_lo_inc)) + 
   geom_histogram(color = "white", fill = 'lightblue')
 
-hist +theme_bw(base_size = 11)
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Number of census tracts",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Percent of low-income households",
+                     breaks = my_brks <- seq(0, 1, by = 0.05),
+                     labels = paste(my_brks * 100, "%", sep = ""))
 
 ggsave("images/hist_lo_inc.png",
        width = 20, height = 15, units = "cm",dpi = 300)
@@ -98,7 +113,12 @@ ggsave("images/hist_lo_inc.png",
 hist <- ggplot(model_data, aes(x=pct_hi_inc)) + 
   geom_histogram(color = "white", fill = 'lightblue')
 
-hist +theme_bw(base_size = 11)
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Number of census tracts",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Percent of high-income households",
+                     breaks = my_brks <- seq(0, 1, by = 0.05),
+                     labels = paste(my_brks * 100, "%", sep = ""))
 
 ggsave("images/hist_hi_inc.png",
        width = 20, height = 15, units = "cm",dpi = 300)
@@ -108,18 +128,18 @@ ggsave("images/hist_hi_inc.png",
 hist <- ggplot(model_data, aes(x=pct_big_hh)) + 
   geom_histogram(color = "white", fill = 'lightblue')
 
-hist +theme_bw(base_size = 11)
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Number of census tracts",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Percent of large households",
+                     breaks = my_brks <- seq(0, 1, by = 0.05),
+                     labels = paste(my_brks * 100, "%", sep = ""))
 
 ggsave("images/hist_big_hh.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
-```{r}
-hist <- ggplot(model_data, aes(x=pct_big_hh)) + 
-  geom_histogram(color = "white", fill = 'lightblue')
 
-hist +theme_bw(base_size = 11)
-```
-
+#estimate regression models
 
 ```{r}
 model1 <- lm(pct_no_veh ~ pct_big_hh + pct_lo_inc + pct_hi_inc + ratio, data = model_data)
@@ -132,7 +152,7 @@ model2 <- lm(pct_no_veh ~ pct_big_hh + pct_lo_inc + ratio, data = model_data)
 model3 <- lm(pct_no_veh ~ pct_big_hh + pct_lo_inc, data = model_data)
 export_summs(model1, model2, model3)
 ```
-
+#Plot regression analysis summary using jtools package
 
 ```{r}
 coef_names <- c("Percentage of households with three or more people" = "pct_big_hh",
@@ -146,7 +166,7 @@ plot_summs(model1, model2, model3, robust = "HC3", coefs = coef_names)
 ggsave("images/model_reg.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
-
+#Apply regression model to alternative scenario
 
 ```{r}
 alt_access <- here("alternative",
@@ -187,7 +207,7 @@ alt_zones <- filter(alt_zones,
 
 
 # Analysis
-## Describtive Data 
+## Descriptive Data 
 ```{r}
 summary(alt_zones$pred)
 sd(alt_zones$pred)
@@ -207,7 +227,7 @@ typeof(alt_zones$GEOID)
 ```
 
 
-## Maps of difference in percentage of no-vehicle households before/after the intervention
+# Maps representing no-vehicle households estimate in the alternative scenario and the difference in percentage of no-vehicle households before and after the intervention
 ```{r}
 alt_zones <- alt_zones %>%
   mutate(no_veh_diff = pred - pct_no_veh) %>%
