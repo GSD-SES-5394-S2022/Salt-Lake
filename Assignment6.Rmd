@@ -195,39 +195,25 @@ alt_zones$pct_hi_inc[is.nan(alt_zones$pct_hi_inc)] <- 0
 alt_zones$pct_no_veh[is.nan(alt_zones$pct_no_veh)] <- 0
 ```
 
+#Apply model 2 
 ```{r}
 alt_zones <- filter(alt_zones, 
                        !is.infinite(alt_zones$ratio))%>%
-  add_predictions(model = model3) %>%
+  add_predictions(model = model2) %>%
   mutate(pct_no_veh = pred) %>%
   mutate(no_vehE = round(total_hhsE * pct_no_veh)) 
 alt_zones <- filter(alt_zones, 
                        !is.infinite(alt_zones$ratio))
 ```
 
-
 # Analysis
 ## Descriptive Data 
 ```{r}
 summary(alt_zones$pred)
 sd(alt_zones$pred)
+
 ```
-```{r}
-summary(model_data$pct_no_veh)
-sd(model_data$pct_no_veh)
-```
-
-```{r}
-zones <- here("zones",
-              "boundaries.geojson") %>%
-  st_read()
-
-typeof(zones$GEOID)
-typeof(alt_zones$GEOID)
-```
-
-
-# Maps representing no-vehicle households estimate in the alternative scenario and the difference in percentage of no-vehicle households before and after the intervention
+## Maps representing no-vehicle households estimate in the alternative scenario and the difference in percentage of no-vehicle households before and after the intervention
 ```{r}
 alt_zones <- alt_zones %>%
   mutate(no_veh_diff = pred - pct_no_veh) %>%
@@ -256,6 +242,68 @@ ggsave("images/map_alternative_no_veh_estimate.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 
 ```
+
+
+```{r}
+
+map_palette <- brewer.pal(5, "YlOrBr")
+
+map_diff2 <- ggplot(zones) +
+  geom_sf(aes(fill = no_veh_diff),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "difference in percentage of\nno-vehicle households\nbefore/after the intervention") +
+  theme_void()
+
+map_diff2
+```
+
+#Apply model 3 
+```{r}
+alt_zones <- filter(alt_zones, 
+                       !is.infinite(alt_zones$ratio))%>%
+  add_predictions(model = model3) %>%
+  mutate(pct_no_veh = pred) %>%
+  mutate(no_vehE = round(total_hhsE * pct_no_veh)) 
+alt_zones <- filter(alt_zones, 
+                       !is.infinite(alt_zones$ratio))
+```
+
+
+
+# Analysis
+## Descriptive Data 
+```{r}
+summary(alt_zones$pred)
+sd(alt_zones$pred)
+```
+```{r}
+summary(model_data$pct_no_veh)
+sd(model_data$pct_no_veh)
+```
+
+```{r}
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read()
+
+typeof(zones$GEOID)
+typeof(alt_zones$GEOID)
+```
+
+
+## Maps representing no-vehicle households estimate in the alternative scenario and the difference in percentage of no-vehicle households before and after the intervention
+```{r}
+alt_zones <- alt_zones %>%
+  mutate(no_veh_diff = pred - pct_no_veh) %>%
+  mutate(GEOID = as.character(GEOID))
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read() %>%
+  inner_join(alt_zones)
+```
+
 
 
 ```{r}
