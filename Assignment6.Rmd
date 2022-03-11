@@ -12,6 +12,8 @@ library(sf)
 library(modelr)
 library(jtools)
 library(dplyr)
+library(ggthemes)
+library(RColorBrewer)
 ```
 
 ```{r}
@@ -37,16 +39,28 @@ model_data <- left_join(zones, access) %>%
 ```
 Becasue the tract 49035980000, 49035112818 and 49045980000 have no households, we exclude these three tracts from analysis of impacts of our proposal. We also exclude tract 49035110104, 49035100200, and 49035114800 becasue they are not accessible by cars according to OSM data.
 ```{r}
+model_data$pct_big_hh[is.nan(model_data$pct_big_hh)] <- 0
+model_data$pct_lo_inc[is.nan(model_data$pct_lo_inc)] <- 0
+model_data$pct_hi_inc[is.nan(model_data$pct_hi_inc)] <- 0
+model_data$pct_no_veh[is.nan(model_data$pct_no_veh)] <- 0
+
 model_data <- filter(model_data, 
-                       model_data$GEOID != "49035980000" & 
-                       model_data$GEOID != "49045980000" & 
-                       model_data$GEOID != "49035112818" & 
-                       model_data$GEOID != "49035110104" & 
-                       model_data$GEOID != "49035100200" & 
-                       model_data$GEOID != "49035114800")
+                       !is.infinite(model_data$ratio))
 
 ```
 
+```{r}
+ggplot(model_data, aes(x = pct_big_hh, y = pct_no_veh)) +
+  geom_point(size = 1, color = "blue") +
+  geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
+```
+
+```{r}
+ggplot(model_data, aes(x = pct_hi_inc, y = pct_no_veh)) +
+  geom_point(size = 1, color = "blue") +
+  geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
+
+```
 
 
 
@@ -56,6 +70,13 @@ ggplot(model_data, aes(x = pct_lo_inc, y = pct_no_veh)) +
   geom_smooth(size = 0.5, lty = "dashed", color = "blue", method = "lm")
 
 ```
+```{r}
+ggplot(model_data, aes(x=pct_lo_inc)) + 
+  geom_histogram()
+
+```
+
+
 ```{r}
 model1 <- lm(pct_no_veh ~ pct_big_hh + pct_lo_inc + pct_hi_inc + ratio, data = model_data)
 
@@ -73,6 +94,8 @@ alt_access <- here("alternative",
                "access_compare_alt.csv") %>%
   read_csv()
 
+
+
 alt_zones <- here("alternative",
                "data",
                "zone_data.csv") %>%
@@ -81,11 +104,27 @@ alt_zones <- here("alternative",
   mutate(pct_big_hh = (hh_3personE + hh_4person_plusE) / total_hhsE,
          pct_lo_inc = inc_quint_20 / total_hhsE,
          pct_hi_inc = inc_quint_100 / total_hhsE,
-         pct_no_veh = no_vehE / total_hhsE) %>%
-  add_predictions(model = model2) %>%
+         pct_no_veh = no_vehE / total_hhsE) 
+ 
+
+```
+```{r}
+alt_zones$pct_big_hh[is.nan(alt_zones$pct_big_hh)] <- 0
+alt_zones$pct_lo_inc[is.nan(alt_zones$pct_lo_inc)] <- 0
+alt_zones$pct_hi_inc[is.nan(alt_zones$pct_hi_inc)] <- 0
+alt_zones$pct_no_veh[is.nan(alt_zones$pct_no_veh)] <- 0
+```
+
+```{r}
+alt_zones <- filter(alt_zones, 
+                       !is.infinite(alt_zones$ratio))%>%
+  add_predictions(model = model3) %>%
   mutate(pct_no_veh = pred) %>%
   mutate(no_vehE = round(total_hhsE * pct_no_veh)) 
+alt_zones <- filter(alt_zones, 
+                       !is.infinite(alt_zones$ratio))
 ```
+
 # Analysis
 ## Describtive Data 
 ```{r}
@@ -96,6 +135,7 @@ sd(alt_zones$pred)
 summary(model_data$pct_no_veh)
 sd(model_data$pct_no_veh)
 ```
+
 ```{r}
 coef_names <- c("Percentage of households with three or more people" = "pct_big_hh",
                 "Percentage of households in the first income quintile" = "pct_lo_inc",
@@ -104,5 +144,41 @@ coef_names <- c("Percentage of households with three or more people" = "pct_big_
 )
 
 plot_summs(model1, model2, model3, robust = "HC3", coefs = coef_names)
+```
+
+```{r}
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read()
+
+typeof(zones$GEOID)
+typeof(alt_zones$GEOID)
+```
+
+
+## Maps of difference in percentage of no-vehicle households before/after the intervention
+```{r}
+alt_zones <- alt_zones %>%
+  mutate(no_veh_diff = pred - pct_no_veh) %>%
+  mutate(GEOID = as.character(GEOID))
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read() %>%
+  inner_join(alt_zones)
+```
+
+```{r}
+
+map_palette <- brewer.pal(5, "YlOrBr")
+
+map_diff <- ggplot(zones) +
+  geom_sf(aes(fill = no_veh_diff),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "difference in percentage of\nno-vehicle households\nbefore/after the intervention") +
+  theme_void()
+
+map_diff
 ```
 
