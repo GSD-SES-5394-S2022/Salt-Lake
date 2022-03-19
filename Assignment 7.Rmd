@@ -240,3 +240,181 @@ trip_end_summary <- tibble(Purpose = c("HBO"),
 kable(trip_end_summary, format.args = list(big.mark = ","))
 ```
 
+
+
+```{r}
+hist <- ggplot(existing_zones, aes(x=hbw_attr_bal)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Number of tracts",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Home-based work trip attraction(Balanced)")
+
+ggsave("images/hbw_attr_bal.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+```{r}
+hist <- ggplot(existing_zones, aes(x=hbo_attr_bal)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Number of tracts",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Home-based non-work trip attraction(Balanced)",
+                      )
+
+ggsave("images/hbo_attr_bal.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+hist <- ggplot(existing_zones, aes(x=nhb_attr_bal)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Number of tracts",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Non home-based trip attraction(Balanced)"
+                     )
+
+ggsave("images/nhb_attr_bal.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+hist <- ggplot(existing_zones, aes(x=hbo_prod)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Number of tracts",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Home-based non-work trip production"
+                     )
+
+ggsave("images/hbo_prod.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+hist <- ggplot(existing_zones, aes(x=hbw_prod)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Number of tracts",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Home-based work trip production"
+                     )
+
+ggsave("images/hbw_prod.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+hist <- ggplot(existing_zones, aes(x=nhb_prod)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Number of tracts",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Non home-based trip production"
+                     )
+
+ggsave("images/nhb_prod.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+existing_zones <- existing_zones %>%
+  mutate(GEOID = as.character(GEOID))
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read() %>%
+  inner_join(existing_zones)
+```
+
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map_diff_model2 <- ggplot(zones) +
+  geom_sf(aes(fill = hbw_attr_bal),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Home-based work trip \nattraction (balanced)") +
+  theme_void()
+
+map_diff_model2
+ggsave("images/map_hbw_attr_bal.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = hbo_attr_bal),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Home-based \nnon-work trip \nattraction (balanced)") +
+  theme_void()
+
+map
+ggsave("images/map_hbo_attr_bal.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = nhb_attr_bal),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Non home-based trip \nattraction (balanced)") +
+  theme_void()
+
+map
+ggsave("images/map_nhb_attr_bal.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = nhb_prod),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Non home-based trip \nproduction") +
+  theme_void()
+
+map
+ggsave("images/map_nhb_prod.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = hbo_prod),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Home-based \nnon-work trip \nproduction") +
+  theme_void()
+
+map
+ggsave("images/map_hbo_prod.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = hbw_prod),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Home-based \nwork trip \nproduction") +
+  theme_void()
+
+map
+ggsave("images/map_hbw_prod.png",
+       width = 40, height = 20, units = "cm",dpi = 300)
+```
+
