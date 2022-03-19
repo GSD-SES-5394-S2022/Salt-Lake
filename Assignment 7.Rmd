@@ -1,0 +1,161 @@
+---
+title: "Assignment 7"
+author: "Aijing Li, Charuvi Begwani"
+date: "3/18/2022"
+output: html_document
+---
+```{r}
+library(here)
+library(tidyverse)
+library(survey)
+library(srvyr)
+library(naniar)
+library(jtools)
+library(knitr)
+```
+
+# Trip productions
+## Load NHTS data
+```{r, message= FALSE, warning=FALSE, echo=FALSE}
+trips <- read_csv(here("existing/data/trippub.csv"))
+hhs <- read_csv(here("existing/data/hhpub.csv"))
+
+```
+
+## Select household-level variables
+```{r}
+saltlake_hhs <- hhs %>%
+  filter(HH_CBSA == "41620") %>%
+  mutate(inc_quint_ = case_when(HHFAMINC == "01" ~ "1st",
+                               HHFAMINC == "02" ~ "1st",
+                               HHFAMINC == "03" ~ "1st",
+                               HHFAMINC == "04" ~ "1st",
+                               HHFAMINC == "05" ~ "2nd",
+                               HHFAMINC == "06" ~ "3rd",
+                               HHFAMINC == "07" ~ "3rd",
+                               HHFAMINC == "08" ~ "4th",
+                               HHFAMINC == "09" ~ "4th",
+                               HHFAMINC == "10" ~ "5th",
+                               HHFAMINC == "11" ~ "5th",
+                               TRUE ~ "NA")) %>%
+  mutate(size_ = case_when(HHSIZE == 1 ~ "one",
+                              HHSIZE == 2 ~ "two",
+                              HHSIZE == 3 ~ "three",
+                              TRUE ~ "four_plus")) %>%
+  mutate(zero_veh_ = (HHVEHCNT == 0)) %>%
+  replace_with_na(list(inc_quint_ = "NA")) %>%
+  select(HOUSEID, zero_veh_, size_, inc_quint_, WTHHFIN) 
+```
+
+## Select trip-level variables
+```{r}
+trips_by_purpose <- trips %>% 
+  filter(HH_CBSA == "41620") %>%
+  select(HOUSEID, WHYFROM, WHYTO) %>%
+  mutate(home_based = case_when(WHYTO == "01" ~ TRUE,
+                                WHYTO == "02" ~ TRUE,
+                                WHYFROM == "01" ~ TRUE,
+                                WHYFROM == "02" ~ TRUE,
+                                TRUE ~ FALSE)) %>%
+  mutate(work = ifelse(WHYTO == "03" | WHYFROM == "03", TRUE, FALSE)) %>%
+  mutate(purpose = case_when(home_based & work ~ "HBW",
+                            home_based ~ "HBO",
+                            TRUE ~ "NHB"))%>%
+  group_by(HOUSEID, purpose) %>%
+  summarize(n = n()) %>%
+  pivot_wider(names_from = "purpose", values_from = "n") 
+```
+
+
+```{r}
+ hh_trips <- left_join(saltlake_hhs, trips_by_purpose) %>%
+  replace_na(list(HBW = 0,
+                  HBO = 0,
+                  NHB = 0))
+```
+## Create a survey object
+```{r}
+svy_trips <- hh_trips %>%
+  as_survey(weights = WTHHFIN)
+```
+
+## Estimate a household-level regression model
+## for HBO trips
+```{r}
+
+HBO_model1 <- svyglm(HBO ~ zero_veh_ + size_ + inc_quint_, svy_trips)
+
+export_summs(HBO_model1, 
+             error_pos = "right", 
+             error_format = "(p = {p.value})",
+             model.names = "Full model")
+
+```
+```{r}
+HBO_model2 <- svyglm(HBO ~ size_, svy_trips)
+
+export_summs(HBO_model1, HBO_model2,
+             error_pos = "right", 
+             error_format = "(p = {p.value})",
+             model.names = c("Full model", "Reduced model"))
+```
+
+## for HBW
+```{r}
+
+HBW_model1 <- svyglm(HBW ~ zero_veh_ + size_ + inc_quint_, svy_trips)
+
+export_summs(HBW_model1, 
+             error_pos = "right", 
+             error_format = "(p = {p.value})",
+             model.names = "Full model")
+```
+```{r}
+HBW_model2 <- svyglm(HBW ~ size_, svy_trips)
+
+export_summs(HBW_model1, HBW_model2,
+             error_pos = "right", 
+             error_format = "(p = {p.value})",
+             model.names = c("Full model", "Reduced model"))
+```
+
+## for NHB
+```{r}
+NHB_model1 <- svyglm(NHB ~ zero_veh_ + size_ + inc_quint_, svy_trips)
+
+export_summs(NHB_model1, 
+             error_pos = "right", 
+             error_format = "(p = {p.value})",
+             model.names = "Full model")
+
+```
+```{r}
+NHB_model2 <- svyglm(NHB ~ size_+inc_quint_, svy_trips)
+
+export_summs(NHB_model1, NHB_model2,
+             error_pos = "right", 
+             error_format = "(p = {p.value})",
+             model.names = c("Full model", "Reduced model"))
+```
+```{r}
+existing_zones <- here("existing",
+                       "data",
+                       "zone_data.csv") %>%
+  read_csv() %>%
+  mutate(hbo_prod = total_hhsE * HBO_model2$coefficients["(Intercept)"] +
+                    hh_1personE * HBO_model2$coefficients["size_one"] +
+                    hh_2personE * HBO_model2$coefficients["size_two"] +
+                    hh_3personE * HBO_model2$coefficients["size_three"])
+```
+```{r}
+existing_zones <- here("existing",
+                       "data",
+                       "zone_data.csv") %>%
+  read_csv() %>%
+  mutate(hbo_prod = total_hhsE * HBW_model2$coefficients["(Intercept)"] +
+                    hh_1personE * HBW_model2$coefficients["size_one"] +
+                    hh_2personE * HBW_model2$coefficients["size_two"] +
+                    hh_3personE * HBW_model2$coefficients["size_three"]+
+                    )
+```
+
