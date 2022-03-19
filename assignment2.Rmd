@@ -115,13 +115,13 @@ We had retreived census data on the total number of households earning incomes i
 
 ```{r}
 census <- census %>% 
-  mutate(inc_quint_20 = inc_lt_10kE+inc_btw_10k_15kE+
+  mutate(inc_quint_1 = inc_lt_10kE+inc_btw_10k_15kE+
           inc_btw_15k_20kE+inc_btw_20k_25kE+inc_btw_25k_30kE+inc_btw_30k_35kE)%>%
-  mutate(inc_quint_35 = inc_btw_35k_40kE + inc_btw_40k_45kE 
-        + inc_btw_45k_50kE + inc_btw_50k_60kE)%>%
-  mutate(inc_quint_60 = inc_btw_60k_75kE + inc_btw_75k_100kE)%>%
-  mutate(inc_quint_80 = inc_btw_100k_125kE+inc_btw_125k_150kE)%>%
-  mutate(inc_quint_100 = inc_btw_150k_200kE+inc_gt_200kE)%>%
+  mutate(inc_quint_2 = inc_btw_35k_40kE + inc_btw_40k_45kE 
+        + inc_btw_45k_50kE+ inc_btw_50k_60kE+ inc_btw_60k_75kE)%>%
+  mutate(inc_quint_3 = inc_btw_75k_100kE)%>%
+  mutate(inc_quint_4 = inc_btw_100k_125kE+inc_btw_125k_150kE)%>%
+  mutate(inc_quint_5 = inc_btw_150k_200kE+inc_gt_200kE)%>%
 select(GEOID, 
          total_hhsE,
          no_vehE,
@@ -131,11 +131,11 @@ select(GEOID,
          hh_3personE,
          hh_4person_plusE,
         
-         inc_quint_20,
-         inc_quint_35,
-         inc_quint_60,
-         inc_quint_80,
-         inc_quint_100,
+         inc_quint_1,
+         inc_quint_2,
+         inc_quint_3,
+         inc_quint_4,
+         inc_quint_5,
         
           inc_lt_10kE,
           inc_btw_10k_15kE,
@@ -212,8 +212,8 @@ We summarize all key statistics with regard to the tract level data and determin
 #
 zone_data %>%
   pivot_longer(cols=c(total_emp, total_hhsE, no_vehE,
-                      inc_quint_20, inc_quint_35,inc_quint_60,
-                      inc_quint_80,inc_quint_100,
+                      inc_quint_1, inc_quint_2,inc_quint_3,
+                      inc_quint_4,inc_quint_5,
                       basic_emp, retail_emp, service_emp,
                       hh_1personE, hh_2personE, hh_3personE, hh_4person_plusE,),
                names_to = "Variable",
@@ -223,7 +223,7 @@ zone_data %>%
             `Standard deviation` = sd(value, na.rm=TRUE),
             Median = median(value, median(value, na.rm=TRUE)))
 
-write_csv(zone_data, "images/zone_summary.csv", append = FALSE)
+write_csv(zone_data, "existing/data/zone_data.csv", append = FALSE)
 ```
 
 We also find the total number of households and employees in our MSA.
