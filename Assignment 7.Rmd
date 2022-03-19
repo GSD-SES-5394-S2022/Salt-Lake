@@ -177,22 +177,66 @@ existing_zones <- existing_zones %>%
   mutate(hbo_attr = 0.7 * total_hhsE +
                     0.7 * basic_emp +
                     8.4 * retail_emp +
-                    3.5 * service_emp)
+                    3.5 * service_emp) %>%
+  mutate(hbw_attr = 1.2 * (basic_emp + 
+                             retail_emp + 
+                             service_emp)) %>%
+  mutate(nhb_attr = 0.6 * total_hhsE +
+                    0.5 * basic_emp +
+                    4.7 * retail_emp +
+                    1.4 * service_emp)
 ```
 
-```{r}
-existing_zones <- existing_zones %>%
-  replace_na(list(basic_emp = 0,
-                  retail_emp = 0, 
-                  service_emp = 0)) %>%
-  mutate(hbw_attr = 0.7 * total_hhsE +
-                    0.7 * basic_emp +
-                    8.4 * retail_emp +
-                    3.5 * service_emp)
-```
 
 # Balancing productions and attractions
 ```{r}
+trip_end_summary <- tibble(Purpose = c("HBO"),
+                           Productions = c(sum(existing_zones$hbo_prod)),
+                           Attractions = c(sum(existing_zones$hbo_attr)),
+                           Difference = c(sum(existing_zones$hbo_attr) - 
+                                            sum(existing_zones$hbo_prod)))
 
+kable(trip_end_summary, format.args = list(big.mark = ","))
+```
+```{r}
+trip_end_summary <- tibble(Purpose = c("HBW"),
+                           Productions = c(sum(existing_zones$hbw_prod)),
+                           Attractions = c(sum(existing_zones$hbw_attr)),
+                           Difference = c(sum(existing_zones$hbw_attr) - 
+                                            sum(existing_zones$hbw_prod)))
+kable(trip_end_summary, format.args = list(big.mark = ","))
+```
+
+```{r}
+trip_end_summary <- tibble(Purpose = c("NHB"),
+                           Productions = c(sum(existing_zones$nhb_prod)),
+                           Attractions = c(sum(existing_zones$nhb_attr)),
+                           Difference = c(sum(existing_zones$nhb_attr) - 
+                                            sum(existing_zones$nhb_prod)))
+kable(trip_end_summary, format.args = list(big.mark = ","))
+
+```
+## scale trip attraction
+```{r}
+existing_zones <- existing_zones %>%
+  mutate(hbo_attr_bal = hbo_attr * 
+           sum(existing_zones$hbo_prod) / sum(existing_zones$hbo_attr)) %>%
+  mutate(hbw_attr_bal = hbw_attr * 
+           sum(existing_zones$hbw_prod) / sum(existing_zones$hbw_attr)) %>%
+  mutate(nhb_attr_bal = nhb_attr * 
+           sum(existing_zones$nhb_prod) / sum(existing_zones$nhb_attr)) 
+
+```
+
+##Check scaled totals
+
+```{r}
+trip_end_summary <- tibble(Purpose = c("HBO"),
+                           Productions = c(sum(existing_zones$hbo_prod)),
+                           Attractions = c(sum(existing_zones$hbo_attr_bal)),
+                           Difference = c(sum(existing_zones$hbo_attr_bal) - 
+                                            sum(existing_zones$hbo_prod)))
+
+kable(trip_end_summary, format.args = list(big.mark = ","))
 ```
 
