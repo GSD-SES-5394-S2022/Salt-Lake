@@ -343,7 +343,7 @@ map_diff_model2 <- ggplot(zones) +
 
 map_diff_model2
 ggsave("images/map_hbw_attr_bal.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 ```{r}
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -357,7 +357,7 @@ map <- ggplot(zones) +
 
 map
 ggsave("images/map_hbo_attr_bal.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
 ```{r}
@@ -372,7 +372,7 @@ map <- ggplot(zones) +
 
 map
 ggsave("images/map_nhb_attr_bal.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 ```{r}
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -386,7 +386,7 @@ map <- ggplot(zones) +
 
 map
 ggsave("images/map_nhb_prod.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
 ```{r}
@@ -401,7 +401,7 @@ map <- ggplot(zones) +
 
 map
 ggsave("images/map_hbo_prod.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 ```{r}
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -415,6 +415,6 @@ map <- ggplot(zones) +
 
 map
 ggsave("images/map_hbw_prod.png",
-       width = 40, height = 20, units = "cm",dpi = 300)
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
