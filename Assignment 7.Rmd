@@ -12,6 +12,8 @@ library(srvyr)
 library(naniar)
 library(jtools)
 library(knitr)
+library(sf)
+library(RColorBrewer)
 ```
 
 # Trip productions
@@ -118,6 +120,16 @@ export_summs(HBW_model1, HBW_model2,
              error_format = "(p = {p.value})",
              model.names = c("Full model", "Reduced model"))
 ```
+```{r}
+HBW_model3 <- svyglm(HBW ~ 1, svy_trips)
+
+
+export_summs(HBW_model1, HBW_model2, HBW_model3,
+             error_pos = "right", 
+             error_format = "(p = {p.value})",
+             model.names = c("Full model", "Reduced model","Empty Model"))
+```
+
 
 ## for NHB
 ```{r}
