@@ -4,7 +4,7 @@ author: "Aijing Li, Charuvi Begwani"
 date: "3/18/2022"
 output: html_document
 ---
-```{r}
+```{r, message=FALSE,warning=FALSE}
 library(here)
 library(tidyverse)
 library(survey)
