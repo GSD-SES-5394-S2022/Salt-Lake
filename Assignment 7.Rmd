@@ -181,6 +181,7 @@ existing_zones <- here("existing",
 ```
 
 # Trip Attractions
+## We apply the attraction model from Table 4-4 of the National Cooperative Highway Research Program (NCHRP) Report 716: Travel Demand Forecasting, to predict the the number of trips attracted to each zone for each of three trip purposes. We estimate the number of trips using the models found under "All person trips", since we would be including non-motorized modes in our model. For Home-based work trips we use the one model that has been provided. To estimate HBO trip attraction, we use “Model 3” under Home-based Nonwork trips, since we don’t have school enrollment data. For NHB trips, we use Model 1 under Non-home based trips, since we have data on basic employment.
 ```{r}
 existing_zones <- existing_zones %>%
   replace_na(list(basic_emp = 0,
