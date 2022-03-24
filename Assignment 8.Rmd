@@ -5,6 +5,13 @@ date: "3/24/2022"
 output: html_document
 ---
 ```{r}
+library(devtools)
+
+install_github("https://github.com/c-voulgaris/scenRios")
+```
+
+## Set-up and Load Data
+```{r, message=FALSE,warning=FALSE}
 library(here)
 library(tidyverse)
 library(sf)
@@ -60,10 +67,35 @@ skims <- skims %>%
                          na.rm = TRUE)) 
 ```
 
+# Calculate friction factors
+## Exponential function
 ```{r}
 m_HBO <- ttime_by_purpose$avg_time[ttime_by_purpose$purpose == "HBO"]
 
 skims <- skims %>%
   mutate(F_HBO = exp(-1 * m_HBO * min_time)) 
+```
+## Power function
+```{r}
+skims <- skims %>%
+  mutate(F_NHB = min_time^-2) 
+```
+## Gemma function
+```{r}
+skims <- skims %>%
+  mutate(F_HBW = min_time^-0.503*exp(-0.078*min_time)) 
+```
+## Estimate travel flows
+```{r}
+HBO_dist <- grvty_balancing(od_zones = zones,
+                            friction = skims,
+                            zone_id = "GEOID",
+                            zone_o = "hbo_prod",
+                            zone_d = "hbo_attr_bal",
+                            friction_o_id = "fromId",
+                            friction_d_id = "toId",
+                            friction_factor = "F_HBO",
+                            tolerance = 5,
+                            max_iter = 50000)
 ```
 
