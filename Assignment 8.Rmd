@@ -1,0 +1,69 @@
+---
+title: "Assignment 8"
+author: "Aijing Li, Charuvi Begwani"
+date: "3/24/2022"
+output: html_document
+---
+```{r}
+library(here)
+library(tidyverse)
+library(sf)
+library(survey)
+library(srvyr)
+library(od)
+library(ggspatial)
+library(scenRios)
+```
+
+```{r}
+zones <- here("existing",
+              "data",
+              "zone_data.csv") %>%
+  read_csv()
+
+skims <- here("existing",
+              "data",
+              "skims.csv") %>%
+  read_csv()
+```
+```{r}
+trips <- read_csv(here("existing","data", "trippub.csv"))%>%
+  filter(HH_CBSA == "41620")
+
+trips <- trips %>%
+  mutate(home_based = case_when(WHYTO == "01" ~ TRUE,
+                                WHYTO == "02" ~ TRUE,
+                                WHYFROM == "01" ~ TRUE,
+                                WHYFROM == "02" ~ TRUE,
+                                TRUE ~ FALSE)) %>%
+  mutate(work = ifelse(WHYTO == "03" | WHYFROM == "03", TRUE, FALSE)) %>%
+  mutate(purpose = case_when(home_based & work ~ "HBW",
+                            home_based ~ "HBO",
+                            TRUE ~ "NHB"))
+```
+```{r}
+trips_svy <- trips %>%
+  as_survey(weights = WTTRDFIN)
+
+ttime_by_purpose <- trips_svy %>%
+  group_by(purpose) %>%
+  summarise(avg_time = survey_mean(TRVLCMIN))
+
+ttime_by_purpose
+```
+```{r}
+skims <- skims %>%
+  mutate(min_time = pmin(transit_time, 
+                         car_time,
+                         bike_time,
+                         walk_time,
+                         na.rm = TRUE)) 
+```
+
+```{r}
+m_HBO <- ttime_by_purpose$avg_time[ttime_by_purpose$purpose == "HBO"]
+
+skims <- skims %>%
+  mutate(F_HBO = exp(-1 * m_HBO * min_time)) 
+```
+
