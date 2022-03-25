@@ -4,11 +4,6 @@ author: "Aijing Li, Charuvi Begwani"
 date: "3/24/2022"
 output: html_document
 ---
-```{r}
-library(devtools)
-
-install_github("https://github.com/c-voulgaris/scenRios")
-```
 
 ## Set-up and Load Data
 ```{r, message=FALSE,warning=FALSE}
