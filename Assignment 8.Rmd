@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ## Set-up and Load Data
-```{r, message=FALSE,warning=FALSE}
+```{r, message=FALSE,warning=FALSE, echo=FALSE}
 library(here)
 library(tidyverse)
 library(sf)
@@ -53,6 +53,13 @@ ttime_by_purpose <- trips_svy %>%
 
 ttime_by_purpose
 ```
+
+## Change tracts with 0 car time
+```{r}
+skims$car_time[skims$fromId != skims$toId &  skims$car_time == 0] <- 1
+```
+
+
 ```{r}
 skims <- skims %>%
   mutate(min_time = pmin(transit_time, 
@@ -61,6 +68,8 @@ skims <- skims %>%
                          walk_time,
                          na.rm = TRUE)) 
 ```
+
+
 
 # Calculate friction factors
 ## Exponential function
