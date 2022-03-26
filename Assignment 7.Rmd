@@ -211,6 +211,7 @@ trip_end_summary <- tibble(Purpose = c("HBO"),
 
 kable(trip_end_summary, format.args = list(big.mark = ","))
 ```
+
 ```{r}
 trip_end_summary <- tibble(Purpose = c("HBW"),
                            Productions = c(sum(existing_zones$hbw_prod)),
