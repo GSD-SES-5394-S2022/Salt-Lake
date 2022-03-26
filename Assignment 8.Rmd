@@ -28,9 +28,15 @@ skims <- here("existing",
               "skims.csv") %>%
   read_csv()
 ```
-```{r}
-trips <- read_csv(here("existing","data", "trippub.csv"))%>%
+```{r, message=FALSE, warning=FALSE, results='hide'}
+temp <- tempfile()
+download.file("https://nhts.ornl.gov/assets/2016/download/csv.zip", temp)
+
+trips <- read_csv(unz(temp, "trippub.csv"), 
+                      show_col_types = FALSE) %>%
   filter(HH_CBSA == "41620")
+
+unlink(temp)
 
 trips <- trips %>%
   mutate(home_based = case_when(WHYTO == "01" ~ TRUE,
@@ -43,6 +49,7 @@ trips <- trips %>%
                             home_based ~ "HBO",
                             TRUE ~ "NHB"))
 ```
+
 ```{r}
 trips_svy <- trips %>%
   as_survey(weights = WTTRDFIN)
@@ -66,29 +73,30 @@ skims <- skims %>%
                          car_time,
                          bike_time,
                          walk_time,
-                         na.rm = TRUE)) 
+                         na.rm = TRUE)) %>%
+  # set minimum travel time to 1 if it isn't on the diagonal
+  mutate(min_time = case_when(fromId == toId ~ min_time,
+                              min_time < 1 ~ 1,
+                              TRUE ~ min_time))
 ```
 
 
 
 # Calculate friction factors
-## Exponential function
-```{r}
-m_HBO <- ttime_by_purpose$avg_time[ttime_by_purpose$purpose == "HBO"]
 
-skims <- skims %>%
-  mutate(F_HBO = exp(-1 * m_HBO * min_time)) 
-```
-## Power function
+## Gamma function
+
+I recommend you use the gamma function with parameters from NCHRP 716 for all three trip purposes. You'll find it converges much faster.
+
 ```{r}
 skims <- skims %>%
-  mutate(F_NHB = min_time^-2) 
+  mutate(F_HBW = min_time^-0.503*exp(-0.078*min_time),
+         F_HBO = min_time^-3.993*exp(-0.019*min_time),
+         F_NHB = min_time^-3.345*exp(-0.003*min_time))
 ```
-## Gemma function
-```{r}
-skims <- skims %>%
-  mutate(F_HBW = min_time^-0.503*exp(-0.078*min_time)) 
-```
+
+
+
 ## Estimate travel flows
 ```{r}
 HBO_dist <- grvty_balancing(od_zones = zones,
@@ -103,3 +111,30 @@ HBO_dist <- grvty_balancing(od_zones = zones,
                             max_iter = 50000)
 ```
 
+
+```{r}
+HBW_dist <- grvty_balancing(od_zones = zones,
+                            friction = skims,
+                            zone_id = "GEOID",
+                            zone_o = "hbw_prod",
+                            zone_d = "hbw_attr_bal",
+                            friction_o_id = "fromId",
+                            friction_d_id = "toId",
+                            friction_factor = "F_HBW",
+                            tolerance = 5,
+                            max_iter = 50000)
+```
+
+
+```{r}
+NHB_dist <- grvty_balancing(od_zones = zones,
+                            friction = skims,
+                            zone_id = "GEOID",
+                            zone_o = "nhb_prod",
+                            zone_d = "nhb_attr_bal",
+                            friction_o_id = "fromId",
+                            friction_d_id = "toId",
+                            friction_factor = "F_NHB",
+                            tolerance = 5,
+                            max_iter = 50000)
+```
