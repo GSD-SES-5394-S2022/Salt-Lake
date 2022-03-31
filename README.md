@@ -7,12 +7,12 @@ The hypothesized change is built upon the successful implementation of Downtown 
 
 The repository comprises of the following contents:
 * RMarkdowns: The outmost layer stores the RMarkdown(.RMD) files for every assignment with codes used to download, clean and analyze data, generate visualizations and build forecast models. The assignment topics are as follows:
-  Assignment 2: Zones, population attributes and employment distribution
-  Assignment 4: Existing and alternative street and transit networks
-  Assignment 5: Calculating existing and alternative accessibility
-  Assignment 6: Estimating vehicle ownership
-  Assignment 7: Estimating trip generation
-  Assignment 8: Estimating trip distribution
+  Assignment 2: Zones, population attributes and employment distribution;
+  Assignment 4: Existing and alternative street and transit networks;
+  Assignment 5: Calculating existing and alternative accessibility;
+  Assignment 6: Estimating vehicle ownership;
+  Assignment 7: Estimating trip generation;
+  Assignment 8: Estimating trip distribution.
 * _alternative_ folder: The data subfolder consists of demographic, employment, accessibility and travel skims for our alternative scenario or proposed change.The network subfolder consists of the revised road network data and revised transit GTFS for our proposed change.
 * _existing_ folder: The data subfolder consists of demographic, employment, existing accessibility values, travel skims and trip generation and distribution data for our status quo scenario.The network subfolder consists of the existing road network data and existing transit GTFS.
 * _images_ folder: This includes all the graphs and diagrams we generated and used in our written report.
