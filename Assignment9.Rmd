@@ -23,22 +23,15 @@ cost_per_ride
 
 #Driving cost per minute
 
+
+
 ```{r}
-temp <- tempfile()
-download.file("https://nhts.ornl.gov/assets/2016/download/csv.zip", temp)
-
-vehs <- read_csv(unz(temp, "vehpub.csv"), 
-                 show_col_types = FALSE) %>%
+trips <- read_csv(here("existing","data", "trippub.csv"))%>%
   filter(HH_CBSA == "41620")
 
-trips <- read_csv(unz(temp, "trippub.csv"), 
-                      show_col_types = FALSE) %>%
-  filter(HH_CBSA == "41620")
 
 car_trips <- trips %>%
   filter(PSGR_FLG == "02") 
-  
-unlink(temp)
 ```
 
 ```{r}
@@ -78,7 +71,7 @@ cost_per_minute
 skims <- here("existing",
               "data",
               "skims.csv") %>%
-  read_csv(show_col_types = FALSE)
+  read_csv()
 
 head(skims, 5) %>%
   kable() %>%
