@@ -144,6 +144,8 @@ head(HBO_dist$flows)
 ```
 ```{r}
 table(HBO_dist$flows$flow > 0)
+table(HBW_dist$flows$flow > 0)
+table(NHB_dist$flows$flow > 0)
 ```
 ## Visualize convergence(No need to go into report)
 ```{r}
