@@ -197,12 +197,13 @@ HOV_const_NHB <- log(HOV_share_NHB / (1 - HOV_share_NHB))
 transit_const_NHB <- log(transit_share_NHB / (1 - transit_share_NHB))
 walk_const_NHB <- log(walk_share_NHB / (1 - walk_share_NHB))
 bike_const_NHB <- log(bike_share_NHB / (1 - bike_share_NHB))
+
 ```
 
-##Estimating utility of each mode based on the coefficients from NCHRP Table 4.11 for Model I. Assume the cost of parking is zero for all zones.
-###HBO trips: We select Model I to estimate the mode shares, since our city has over 1 million population and our model includes non-motorized modes.
-###HBW trips: We select Model I (or H) to estimate the mode shares, since our city has over 1 million population and our model includes non-motorized modes.
-###NHB trips: We select Model I (or M) to estimate the mode shares, since our city has over 1 million population and our model includes non-motorized modes.
+## Estimating utility of each mode based on the coefficients from NCHRP Table 4.11 for Model I. Assume the cost of parking is zero for all zones.
+### HBO trips: We select Model I to estimate the mode shares, since our city has over 1 million population and our model includes non-motorized modes.
+### HBW trips: We select Model I (or H) to estimate the mode shares, since our city has over 1 million population and our model includes non-motorized modes.
+### NHB trips: We select Model I (or M) to estimate the mode shares, since our city has over 1 million population and our model includes non-motorized modes.
 ```{r}
 #HBO
 skims <- skims %>%
@@ -389,37 +390,37 @@ skims <- skims %>%
 ```{r}
 #HBO
 skims <- skims %>%
-  mutate(n_transit_HBO = round(HBO_flows * p_transit_HBO),
-         n_SOV_HBO = round(HBO_flows * p_SOV_HBO),
-         n_HOV_HBO = round(HBO_flows * p_HOV_HBO),
-         n_walk_HBO = round(HBO_flows * p_walk_HBO),
-         n_bike_HBO = round(HBO_flows * p_bike_HBO)) %>%
+  mutate(n_transit_HBO = round(HBO_flow * p_transit_HBO),
+         n_SOV_HBO = round(HBO_flow * p_SOV_HBO),
+         n_HOV_HBO = round(HBO_flow * p_HOV_HBO),
+         n_walk_HBO = round(HBO_flow * p_walk_HBO),
+         n_bike_HBO = round(HBO_flow * p_bike_HBO)) %>%
   replace_na(list(n_transit_HBO = 0,
                   n_SOV_HBO = 0,
                   n_HOV_HBO = 0,
                   n_walk_HBO = 0,
                   n_bike_HBO =0)) 
 
-#NHB
+#HBW
 skims <- skims %>%
-  mutate(n_transit_HBW= round(HBW_flows * p_transit_HBW),
-         n_SOV_HBW = round(HBW_flows * p_SOV_HBW),
-         n_HOV_HBW = round(HBW_flows * p_HOV_HBW),
-         n_walk_HBW = round(HBW_flows * p_walk_HBW),
-         n_bike_HBW = round(HBW_flows * p_bike_HBW)) %>%
+  mutate(n_transit_HBW= round(HBW_flow * p_transit_HBW),
+         n_SOV_HBW = round(HBW_flow * p_SOV_HBW),
+         n_HOV_HBW = round(HBW_flow * p_HOV_HBW),
+         n_walk_HBW = round(HBW_flow * p_walk_HBW),
+         n_bike_HBW = round(HBW_flow * p_bike_HBW)) %>%
   replace_na(list(n_transit_HBW = 0,
                   n_SOV_HBW = 0,
                   n_HOV_HBW = 0,
                   n_walk_HBW = 0,
                   n_bike_HBW =0)) 
 
-#HB
+#NHB
 skims <- skims %>%
-  mutate(n_transit_NHB = round(NHB_flows * p_transit_NHB),
-         n_SOV_NHB = round(NHB_flows * p_SOV_NHB),
-         n_HOV_NHB = round(NHB_flows * p_HOV_NHB),
-         n_walk_NHB = round(NHB_flows * p_walk_NHB),
-         n_bike_NHB = round(NHB_flows * p_bike_NHB)) %>%
+  mutate(n_transit_NHB = round(NHB_flow * p_transit_NHB),
+         n_SOV_NHB = round(NHB_flow * p_SOV_NHB),
+         n_HOV_NHB = round(NHB_flow * p_HOV_NHB),
+         n_walk_NHB = round(NHB_flow * p_walk_NHB),
+         n_bike_NHB = round(NHB_flow * p_bike_NHB)) %>%
   replace_na(list(n_transit_NHB = 0,
                   n_SOV_NHB = 0,
                   n_HOV_NHB = 0,
@@ -429,22 +430,61 @@ skims <- skims %>%
 
 ###Calculate regional mode shares and compare to survey data
 ```{r}
-modeled_mode_by_purpose_1 <- tibble(
+#HBO
+HBO_modeled_mode_by_purpose_1 <- tibble(
   purpose = "HBO_model 1", 
   pct_bike = sum(skims$n_bike_HBO) / 
-                 sum(skims$HBO_flows),
+                 sum(skims$HBO_flow),
   pct_SOV = sum(skims$n_SOV_HBO) / 
-                sum(skims$HBO_flows),
+                sum(skims$HBO_flow),
   pct_HOV = sum(skims$n_HOV_HBO) / 
-                sum(skims$HBO_flows),
+                sum(skims$HBO_flow),
   pct_transit = sum(skims$n_transit_HBO) / 
-                sum(skims$HBO_flows),
+                sum(skims$HBO_flow),
   pct_walk = sum(skims$n_walk_HBO) / 
-                sum(skims$HBO_flows))
+                sum(skims$HBO_flow))
 
 model_compare <- rbind(mode_by_purpose, modeled_mode_by_purpose_1) 
+
+#HBW
+HBW_modeled_mode_by_purpose_1 <- tibble(
+  purpose = "HBW_model 1", 
+  pct_bike = sum(skims$n_bike_HBW) / 
+                 sum(skims$HBW_flow),
+  pct_SOV = sum(skims$n_SOV_HBW) / 
+                sum(skims$HBW_flow),
+  pct_HOV = sum(skims$n_HOV_HBW) / 
+                sum(skims$HBW_flow),
+  pct_transit = sum(skims$n_transit_HBW) / 
+                sum(skims$HBW_flow),
+  pct_walk = sum(skims$n_walk_HBW) / 
+                sum(skims$HBW_flow))
+
+model_compare <- rbind(mode_by_purpose, modeled_mode_by_purpose_1) 
+
+#NHB
+NHB_modeled_mode_by_purpose_1 <- tibble(
+  purpose = "NHB_model 1", 
+  pct_bike = sum(skims$n_bike_NHB) / 
+                 sum(skims$HBW_flow),
+  pct_SOV = sum(skims$n_SOV_NHB) / 
+                sum(skims$HBW_flow),
+  pct_HOV = sum(skims$n_HOV_NHB) / 
+                sum(skims$HBW_flow),
+  pct_transit = sum(skims$n_transit_NHB) / 
+                sum(skims$HBW_flow),
+  pct_walk = sum(skims$n_walk_NHB) / 
+                sum(skims$HBW_flow))
+
+model_compare <- rbind(mode_by_purpose, HBO_modeled_mode_by_purpose_1,
+                       HBW_modeled_mode_by_purpose_1, 
+                       NHB_modeled_mode_by_purpose_1) 
 
 model_compare
 ```
 
+# Calibrate the models
+```{r}
+
+```
 
