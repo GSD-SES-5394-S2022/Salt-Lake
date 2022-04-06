@@ -292,3 +292,10 @@ NHB_mean_time <- sum(skims$total_time) / sum(skims$NHB_flow)
 NHB_mean_time 
 ```
 
+#Save skim csv files
+```{r}
+write_csv(skims, file = here("existing", 
+                             "data",
+                             "skims.csv"))
+```
+
