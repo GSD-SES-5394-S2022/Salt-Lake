@@ -103,7 +103,7 @@ HBO_dist <- grvty_balancing(od_zones = zones,
                             friction_o_id = "fromId",
                             friction_d_id = "toId",
                             friction_factor = "F_HBO",
-                            tolerance = 5,
+                            tolerance = 0.01,
                             max_iter = 50000)
 
 HBW_dist <- grvty_balancing(od_zones = zones,
@@ -114,7 +114,7 @@ HBW_dist <- grvty_balancing(od_zones = zones,
                             friction_o_id = "fromId",
                             friction_d_id = "toId",
                             friction_factor = "F_HBW",
-                            tolerance = 5,
+                            tolerance = 0.01,
                             max_iter = 50000)
 
 NHB_dist <- grvty_balancing(od_zones = zones,
@@ -125,7 +125,7 @@ NHB_dist <- grvty_balancing(od_zones = zones,
                             friction_o_id = "fromId",
                             friction_d_id = "toId",
                             friction_factor = "F_NHB",
-                            tolerance = 5,
+                            tolerance = 0.01,
                             max_iter = 50000)
 ```
 ## Print out results
@@ -157,19 +157,8 @@ convergence_points <- HBO_dist$convergence %>%
 
 ggplot(convergence_points) +
   geom_line(aes(x = iteration, y = max_diff, lty = which_max)) +
-  scale_y_continuous(name = "Maximum difference from target value",
-                     trans = "log", 
-                     breaks = breaks <- 10^seq(1,5, by=1),
-                     labels = formatC(breaks, 
-                                      big.mark = ",", 
-                                      format = "f", 
-                                      digits = 0)) +
-  scale_x_continuous(name = "Iteration",
-                     breaks = breaks <- seq(0, 14000, by=2000),
-                     labels = formatC(breaks, 
-                                      big.mark = ",", 
-                                      format = "f", 
-                                      digits = 0)) +
+  scale_y_continuous(name = "Percentage difference from target value") +
+  scale_x_continuous(name = "Iteration") +
   scale_linetype(name = "") +
   theme_minimal()
 ```
@@ -184,7 +173,7 @@ desire_lines_HBO <- od_to_sf(HBO_dist$flows, zone_boundaries, silent = TRUE) %>%
   filter(flow > 0)
 
 ggplot(desire_lines_HBO) +
-  annotation_map_tile(type = "cartolight", zoom = 10, progress = "none") +
+  #annotation_map_tile(type = "cartolight", zoom = 10, progress = "none") +
   geom_sf(aes(alpha = flow)) +
   theme_void()
 ```
