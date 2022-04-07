@@ -5,7 +5,6 @@ date: "4/1/2022"
 output: html_document
 ---
 
-
 ```{r}
 library(here)
 library(tidyverse)
@@ -14,8 +13,6 @@ library(knitr)
 library(kableExtra)
 library(survey)
 library(srvyr)
-library(ggplot2)
-library(treemapify)
 ```
 #Transit fare per unlinked trip
 ```{r}
@@ -30,11 +27,11 @@ cost_per_ride
 
 ```{r}
 vehs <- read_csv(here("existing","data", "vehpub.csv"), 
-                  )%>%
+                  show_col_types = FALSE)%>%
   filter(HH_CBSA == "41620")
 
 trips <- read_csv(here("existing","data", "trippub.csv"), 
-                   )%>%
+                   show_col_types = FALSE)%>%
   filter(HH_CBSA == "41620")
 
 car_trips <- trips %>%
@@ -78,7 +75,7 @@ cost_per_minute
 skims <- here("alternative",
               "data",
               "skims.csv") %>%
-  read_csv( )
+  read_csv(show_col_types = FALSE )
 
 head(skims, 5) %>%
   kable() %>%
@@ -486,24 +483,12 @@ model_compare
 
 # Calibrate the models
 ##HBO
-
-# transit_const_HBO <- -4.055
-# SOV_const_HBO <- -0.95
-# HOV_const_HBO <- 0.15
-# bike_const_HBO <- -7.829
-# walk_const_HBO <- -1.6
 ```{r}
 transit_const_HBO  <- -1.7 #-4.055
-SOV_const_HBO <- 1 #-0.95
-HOV_const_HBO <- 0.1 #0.15
-bike_const_HBO <- -2 #-7.82
+SOV_const_HBO <- -0.85 #-0.95
+HOV_const_HBO <- 0.08 #0.15
+bike_const_HBO <- -50 #-7.82
 walk_const_HBO <- -2.2 #-1.60
-
-# transit_const_HBO <- -4.055
-# SOV_const_HBO <- -0.95
-# HOV_const_HBO <- 0.15
-# bike_const_HBO <- -7.829
-# walk_const_HBO <- -1.6
 
 skims <- skims %>%
   mutate(utility_transit_HBO = transit_const_HBO +
@@ -577,15 +562,14 @@ modeled_mode_by_purpose_2 <- tibble(
   pct_walk = sum(skims$n_walk_HBO) / 
                 sum(skims$HBO_flow))
 
-model_compare2 <- rbind(model_compare, modeled_mode_by_purpose_2) 
+model_compare2 <- rbind(model_compare, HBO_modeled_mode_by_purpose_1, modeled_mode_by_purpose_2) 
 
 model_compare2
 ```
 ##HBW
-
 # transit_const_HBW  <- -3.38
 # SOV_const_HBW <- 1.444
-# HOV_const_HBW <- -2.03
+# HOV_const_HBW <- -2.033
 # bike_const_HBW <- -4.3055
 # walk_const_HBW <- -3.508
 
@@ -673,18 +657,18 @@ model_compare2 <- rbind(model_compare, HBW_modeled_mode_by_purpose_1, HBW_modele
 model_compare2
 ```
 
-
-##NHB
-# transit_const_NHB  <- -5.035
-# SOV_const_NHB <- -0.623
-# HOV_const_NHB <- 0.253
+#NHB
+# transit_const_NHB  <- -5.03
+# SOV_const_NHB <- -0.62
+# HOV_const_NHB <- 0.25
 # bike_const_NHB <- -5.636
 # walk_const_NHB <- -2.46
+
 ```{r}
 transit_const_NHB  <- -2.5 
 SOV_const_NHB <- -1.5 
 HOV_const_NHB <- -1
-bike_const_NHB <- -10
+bike_const_NHB <- -12 
 walk_const_NHB <- 0
 
 skims <- skims %>%
@@ -764,6 +748,7 @@ model_compare2 <- rbind(model_compare, NHB_modeled_mode_by_purpose_1, NHB_modele
 
 model_compare2
 ```
+# Visualization
 ## Tree maps
 ```{r}
 
@@ -796,7 +781,7 @@ ggplot(HBO_mode_tibble, aes(area = Percentage, fill= bucket)) +
                         color = "black") +
   scale_fill_brewer(palette = "PuBuGn")
 
-ggsave("images/HBO_mode_percentage.png",
+ggsave("images/HBO_mode_percentagealtalt.png",
       width = 20, height = 9, units = "cm",dpi = 300)
 ```
 
@@ -831,7 +816,7 @@ ggplot(HBW_mode_tibble, aes(area = Percentage, fill= bucket)) +
                         color = "black") +
   scale_fill_brewer(palette = "PuBuGn")
 
-ggsave("images/HBW_mode_percentage.png",
+ggsave("images/HBW_mode_percentagealtalt.png",
       width = 20, height = 9, units = "cm",dpi = 300)
 ```
 
@@ -867,7 +852,226 @@ ggplot(NHB_mode_tibble, aes(area = Percentage, fill= bucket)) +
                         color = "black") +
   scale_fill_brewer(palette = "PuBuGn")
 
-ggsave("images/NHB_mode_percentage.png",
+ggsave("images/NHB_mode_percentagealtalt.png",
       width = 20, height = 9, units = "cm",dpi = 300)
+```
+
+```{r}
+map_data <- skims %>%
+  select(fromId,toId,n_SOV_HBO,n_HOV_HBO,n_bike_HBO,n_transit_HBO,n_walk_HBO,HBO_flow)%>%
+  group_by(fromId) %>%
+  summarize(pct_bike = sum(n_bike_HBO)/sum(HBO_flow),
+            pct_walk = sum(n_walk_HBO)/sum(HBO_flow),
+            pct_transit = sum(n_transit_HBO)/sum(HBO_flow),
+            pct_SOV = sum(n_SOV_HBO)/sum(HBO_flow),
+            pct_HOV = sum(n_HOV_HBO)/sum(HBO_flow),
+            )%>%  
+  mutate(GEOID = as.character(fromId)) 
+
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read()%>%
+inner_join(map_data)
+
+```
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_bike),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of bike mode \nin total HBO trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/HBO_fromid_mode_bikealtalt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_walk),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of walk mode \nin total HBO trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/HBO_fromid_mode_walkaltalt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_transit),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of transit mode \nin total HBO trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/HBO_fromid_mode_transitaltalt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_SOV+pct_HOV),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of car mode \nin total HBO trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/HBO_fromid_mode_caraltalt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+## HBW
+```{r}
+map_data <- skims %>%
+  select(fromId,toId,n_SOV_HBW,n_HOV_HBW,n_bike_HBW,n_transit_HBW,n_walk_HBW,HBW_flow)%>%
+  group_by(fromId) %>%
+  summarize(pct_bike = sum(n_bike_HBW)/sum(HBW_flow),
+            pct_walk = sum(n_walk_HBW)/sum(HBW_flow),
+            pct_transit = sum(n_transit_HBW)/sum(HBW_flow),
+            pct_SOV = sum(n_SOV_HBW)/sum(HBW_flow),
+            pct_HOV = sum(n_HOV_HBW)/sum(HBW_flow),
+            )%>%  
+  mutate(GEOID = as.character(fromId)) 
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read()%>%
+inner_join(map_data)
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_bike),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of bike mode \nin total HBW trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/HBW_fromid_mode_bikealt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_walk),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of walk mode \nin total HBW trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/HBW_fromid_mode_walkalt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_transit),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of transit mode \nin total HBW trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/HBW_fromid_mode_transitalt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_SOV+pct_HOV),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of car mode \nin total HBW trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/HBW_fromid_mode_caralt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+```{r}
+map_data <- skims %>%
+  select(fromId,toId,n_SOV_NHB,n_HOV_NHB,n_bike_NHB,n_transit_NHB,n_walk_NHB,NHB_flow)%>%
+  group_by(fromId) %>%
+  summarize(pct_bike = sum(n_bike_NHB)/sum(NHB_flow),
+            pct_walk = sum(n_walk_NHB)/sum(NHB_flow),
+            pct_transit = sum(n_transit_NHB)/sum(NHB_flow),
+            pct_SOV = sum(n_SOV_NHB)/sum(NHB_flow),
+            pct_HOV = sum(n_HOV_NHB)/sum(NHB_flow),
+            )%>%  
+  mutate(GEOID = as.character(fromId)) 
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read()%>%
+inner_join(map_data)
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_bike),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of bike mode \nin total NHB trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/NHB_fromid_mode_bikealt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_walk),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of walk mode \nin total NHB trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/NHB_fromid_mode_walkalt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_transit),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of transit mode \nin total NHB trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/NHB_fromid_mode_transitalt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = pct_SOV+pct_HOV),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "Percentage of car mode \nin total NHB trip from the tract") +
+  theme_void()
+
+map
+ggsave("images/NHB_fromid_mode_caralt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
