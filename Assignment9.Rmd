@@ -444,8 +444,6 @@ HBO_modeled_mode_by_purpose_1 <- tibble(
   pct_walk = sum(skims$n_walk_HBO) / 
                 sum(skims$HBO_flow))
 
-model_compare <- rbind(mode_by_purpose, modeled_mode_by_purpose_1) 
-
 #HBW
 HBW_modeled_mode_by_purpose_1 <- tibble(
   purpose = "HBW_model 1", 
@@ -459,8 +457,6 @@ HBW_modeled_mode_by_purpose_1 <- tibble(
                 sum(skims$HBW_flow),
   pct_walk = sum(skims$n_walk_HBW) / 
                 sum(skims$HBW_flow))
-
-model_compare <- rbind(mode_by_purpose, modeled_mode_by_purpose_1) 
 
 #NHB
 NHB_modeled_mode_by_purpose_1 <- tibble(
