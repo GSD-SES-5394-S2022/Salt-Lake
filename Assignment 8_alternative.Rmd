@@ -1,0 +1,301 @@
+---
+title: "Assignment 8"
+author: "Aijing Li, Charuvi Begwani"
+date: "3/24/2022"
+output: html_document
+---
+
+## Set-up and Load Data
+```{r, message=FALSE,warning=FALSE, echo=FALSE}
+library(here)
+library(tidyverse)
+library(sf)
+library(survey)
+library(srvyr)
+library(od)
+library(ggspatial)
+library(scenRios)
+```
+
+```{r}
+zones <- here("existing",
+              "data",
+              "zone_data.csv") %>%
+  read_csv()
+
+skims <- here("existing",
+              "data",
+              "skims.csv") %>%
+  read_csv()
+```
+```{r}
+trips <- read_csv(here("existing","data", "trippub.csv"))%>%
+  filter(HH_CBSA == "41620")
+
+trips <- trips %>%
+  mutate(home_based = case_when(WHYTO == "01" ~ TRUE,
+                                WHYTO == "02" ~ TRUE,
+                                WHYFROM == "01" ~ TRUE,
+                                WHYFROM == "02" ~ TRUE,
+                                TRUE ~ FALSE)) %>%
+  mutate(work = ifelse(WHYTO == "03" | WHYFROM == "03", TRUE, FALSE)) %>%
+  mutate(purpose = case_when(home_based & work ~ "HBW",
+                            home_based ~ "HBO",
+                            TRUE ~ "NHB"))
+```
+```{r}
+trips_svy <- trips %>%
+  as_survey(weights = WTTRDFIN)
+
+ttime_by_purpose <- trips_svy %>%
+  group_by(purpose) %>%
+  summarise(avg_time = survey_mean(TRVLCMIN))
+
+ttime_by_purpose
+```
+
+## Change 0 car time to 1 min for PA pairs between different ID
+```{r}
+skims$car_time[skims$fromId != skims$toId &  skims$car_time == 0] <- 1
+```
+
+## Calculate minimum travel time between PA paris
+```{r}
+skims <- skims %>%
+  mutate(min_time = pmin(transit_time, 
+                         car_time,
+                         bike_time,
+                         walk_time,
+                         na.rm = TRUE)) 
+```
+
+
+# Calculate friction factors
+## Exponential function
+```{r}
+# m_HBO <- ttime_by_purpose$avg_time[ttime_by_purpose$purpose == "HBO"]
+# 
+# skims <- skims %>%
+#   mutate(F_HBO = exp(-1 * m_HBO * min_time)) 
+```
+## Power function
+```{r}
+# skims <- skims %>%
+#   mutate(F_NHB = min_time^-2)
+```
+## Gemma function
+## We choose Large MPO 1 parameters for HBO & NHB and MPO 3 for HBW based on comparison of avergae travel time
+```{r}
+skims <- skims %>%
+  mutate(F_HBO = min_time^-3.993*exp(-0.019*min_time)) 
+skims <- skims %>%
+  mutate(F_HBW = min_time^-0.156*exp(-0.045*min_time)) 
+skims <- skims %>%
+  mutate(F_NHB = min_time^-3.345*exp(-0.003*min_time)) 
+```
+## Estimate travel flows
+```{r}
+HBO_dist <- grvty_balancing(od_zones = zones,
+                            friction = skims,
+                            zone_id = "GEOID",
+                            zone_o = "hbo_prod",
+                            zone_d = "hbo_attr_bal",
+                            friction_o_id = "fromId",
+                            friction_d_id = "toId",
+                            friction_factor = "F_HBO",
+                            tolerance = 0.01,
+                            max_iter = 50000)
+
+HBW_dist <- grvty_balancing(od_zones = zones,
+                            friction = skims,
+                            zone_id = "GEOID",
+                            zone_o = "hbw_prod",
+                            zone_d = "hbw_attr_bal",
+                            friction_o_id = "fromId",
+                            friction_d_id = "toId",
+                            friction_factor = "F_HBW",
+                            tolerance = 0.01,
+                            max_iter = 50000)
+
+NHB_dist <- grvty_balancing(od_zones = zones,
+                            friction = skims,
+                            zone_id = "GEOID",
+                            zone_o = "nhb_prod",
+                            zone_d = "nhb_attr_bal",
+                            friction_o_id = "fromId",
+                            friction_d_id = "toId",
+                            friction_factor = "F_NHB",
+                            tolerance = 0.01,
+                            max_iter = 50000)
+```
+## Print out results
+```{r}
+tail(HBO_dist$convergence)
+```
+
+```{r}
+tail(HBW_dist$convergence)
+```
+```{r}
+tail(NHB_dist$convergence)
+```
+```{r}
+head(HBO_dist$flows)
+```
+```{r}
+table(HBO_dist$flows$flow > 0)
+table(HBW_dist$flows$flow > 0)
+table(NHB_dist$flows$flow > 0)
+```
+## Visualize convergence(No need to go into report)
+```{r}
+convergence_points <- HBO_dist$convergence %>%
+  mutate(max_diff = max_o_diff + max_d_diff) %>%
+  mutate(which_max = ifelse(max_o_diff > max_d_diff, 
+                            "Productions",
+                            "Attractions"))
+
+ggplot(convergence_points) +
+  geom_line(aes(x = iteration, y = max_diff, lty = which_max)) +
+  scale_y_continuous(name = "Percentage difference from target value") +
+  scale_x_continuous(name = "Iteration") +
+  scale_linetype(name = "") +
+  theme_minimal()
+```
+
+## Map desire lines
+```{r}
+zone_boundaries <- here("zones",
+              "boundaries.geojson") %>%
+  st_read(quiet = TRUE)
+
+desire_lines_HBO <- od_to_sf(HBO_dist$flows, zone_boundaries, silent = TRUE) %>%
+  filter(flow > 0)
+
+ggplot(desire_lines_HBO) +
+  #annotation_map_tile(type = "cartolight", zoom = 10, progress = "none") +
+  geom_sf(aes(alpha = flow)) +
+  theme_void()
+```
+## Create maps with major attractions only
+## for HBO trips
+```{r}
+big_attraction <- zones[zones$hbo_attr_bal == max(zones$hbo_attr_bal),]$GEOID
+
+big_attraction
+```
+
+```{r}
+desire_lines_one_zone <- desire_lines_HBO %>%
+  filter(d_id == big_attraction)
+
+ggplot(desire_lines_one_zone) +
+  annotation_map_tile(type = "cartolight", zoom = 11, progress = "none") +
+  geom_sf(aes(alpha = flow)) +
+  theme_void()
+
+ggsave("images/HBO_majorattraction_flow.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+## For HBW trips
+```{r}
+desire_lines_HBW <- od_to_sf(HBW_dist$flows, zone_boundaries, silent = TRUE) %>%
+  filter(flow > 0)
+
+big_attraction <- zones[zones$hbw_attr_bal == max(zones$hbw_attr_bal),]$GEOID
+
+big_attraction
+
+desire_lines_one_zone <- desire_lines_HBW %>%
+  filter(d_id == big_attraction)
+
+ggplot(desire_lines_one_zone) +
+  annotation_map_tile(type = "cartolight", zoom = 11, progress = "none") +
+  geom_sf(aes(alpha = flow)) +
+  theme_void()
+
+ggsave("images/HBW_majorattraction_flow.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+## for NHB trips
+```{r}
+desire_lines_NHB <- od_to_sf(NHB_dist$flows, zone_boundaries, silent = TRUE) %>%
+  filter(flow > 0)
+
+big_attraction <- zones[zones$nhb_attr_bal == max(zones$nhb_attr_bal),]$GEOID
+
+big_attraction
+
+desire_lines_one_zone <- desire_lines_NHB %>%
+  filter(d_id == big_attraction)
+
+ggplot(desire_lines_one_zone) +
+  annotation_map_tile(type = "cartolight", zoom = 11, progress = "none") +
+  geom_sf(aes(alpha = flow)) +
+  theme_void()
+
+ggsave("images/NHB_majorattraction_flow.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+
+## Compare calculated travel times to observed travel times
+## Averages from NHTS data
+```{r}
+ttime_by_purpose
+```
+```{r}
+HBO_flows <- HBO_dist$flows %>%
+  rename(fromId = o_id,
+         toId = d_id,
+         HBO_flow = flow)
+
+skims <- skims %>%
+  left_join(HBO_flows) %>%
+  replace_na(list(HBO_flow = 0)) %>%
+  mutate(total_time = HBO_flow * min_time)
+```
+## Averages from gravity model
+```{r}
+HBO_mean_time <- sum(skims$total_time) / sum(skims$HBO_flow)
+
+HBO_mean_time
+```
+```{r}
+HBW_flows <- HBW_dist$flows %>%
+  rename(fromId = o_id,
+         toId = d_id,
+         HBW_flow = flow)
+
+skims <- skims %>%
+  left_join(HBW_flows) %>%
+  replace_na(list(HBW_flow = 0)) %>%
+  mutate(total_time = HBW_flow * min_time)
+
+HBW_mean_time <- sum(skims$total_time) / sum(skims$HBW_flow)
+
+HBW_mean_time 
+```
+```{r}
+NHB_flows <- NHB_dist$flows %>%
+  rename(fromId = o_id,
+         toId = d_id,
+         NHB_flow = flow)
+
+skims <- skims %>%
+  left_join(NHB_flows) %>%
+  replace_na(list(NHB_flow = 0)) %>%
+  mutate(total_time = NHB_flow * min_time)
+
+NHB_mean_time <- sum(skims$total_time) / sum(skims$NHB_flow)
+
+NHB_mean_time 
+```
+
+#Save skim csv files
+```{r}
+write_csv(skims, file = here("existing", 
+                             "data",
+                             "skims.csv"))
+```
+
