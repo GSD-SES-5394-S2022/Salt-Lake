@@ -782,7 +782,7 @@ ggplot(HBO_mode_tibble, aes(area = Percentage, fill= bucket)) +
                         color = "black") +
   scale_fill_brewer(palette = "PuBuGn")
 
-ggsave("images/HBO_mode_percentage.png",
+ggsave("images/HBO_mode_percentage_exs_exs.png",
       width = 20, height = 9, units = "cm",dpi = 300)
 ```
 
@@ -817,7 +817,7 @@ ggplot(HBW_mode_tibble, aes(area = Percentage, fill= bucket)) +
                         color = "black") +
   scale_fill_brewer(palette = "PuBuGn")
 
-ggsave("images/HBW_mode_percentage.png",
+ggsave("images/HBW_mode_percentage_exs.png",
       width = 20, height = 9, units = "cm",dpi = 300)
 ```
 
@@ -853,7 +853,7 @@ ggplot(NHB_mode_tibble, aes(area = Percentage, fill= bucket)) +
                         color = "black") +
   scale_fill_brewer(palette = "PuBuGn")
 
-ggsave("images/NHB_mode_percentage.png",
+ggsave("images/NHB_mode_percentage_exs.png",
       width = 20, height = 9, units = "cm",dpi = 300)
 ```
 
@@ -888,7 +888,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/HBO_fromid_mode_bike.png",
+ggsave("images/HBO_fromid_mode_bike_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
@@ -904,7 +904,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/HBO_fromid_mode_walk.png",
+ggsave("images/HBO_fromid_mode_walk_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
 ```{r}
@@ -918,7 +918,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/HBO_fromid_mode_transit.png",
+ggsave("images/HBO_fromid_mode_transit_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
 ```{r}
@@ -932,7 +932,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/HBO_fromid_mode_car.png",
+ggsave("images/HBO_fromid_mode_car_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
 ## HBW
@@ -963,7 +963,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/HBW_fromid_mode_bike.png",
+ggsave("images/HBW_fromid_mode_bike_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -976,7 +976,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/HBW_fromid_mode_walk.png",
+ggsave("images/HBW_fromid_mode_walk_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -989,7 +989,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/HBW_fromid_mode_transit.png",
+ggsave("images/HBW_fromid_mode_transit_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -1002,7 +1002,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/HBW_fromid_mode_car.png",
+ggsave("images/HBW_fromid_mode_car_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
@@ -1033,7 +1033,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/NHB_fromid_mode_bike.png",
+ggsave("images/NHB_fromid_mode_bike_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -1046,7 +1046,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/NHB_fromid_mode_walk.png",
+ggsave("images/NHB_fromid_mode_walk_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -1059,7 +1059,7 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/NHB_fromid_mode_transit.png",
+ggsave("images/NHB_fromid_mode_transit_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 
 map_palette <- brewer.pal(5, "PuBuGn")
@@ -1072,6 +1072,6 @@ map <- ggplot(zones) +
   theme_void()
 
 map
-ggsave("images/NHB_fromid_mode_car.png",
+ggsave("images/NHB_fromid_mode_car_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
