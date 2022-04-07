@@ -23,7 +23,7 @@ zones <- here("existing",
               "zone_data.csv") %>%
   read_csv()
 
-skims <- here("existing",
+skims <- here("alternative",
               "data",
               "skims.csv") %>%
   read_csv()
@@ -147,96 +147,6 @@ table(HBO_dist$flows$flow > 0)
 table(HBW_dist$flows$flow > 0)
 table(NHB_dist$flows$flow > 0)
 ```
-## Visualize convergence(No need to go into report)
-```{r}
-convergence_points <- HBO_dist$convergence %>%
-  mutate(max_diff = max_o_diff + max_d_diff) %>%
-  mutate(which_max = ifelse(max_o_diff > max_d_diff, 
-                            "Productions",
-                            "Attractions"))
-
-ggplot(convergence_points) +
-  geom_line(aes(x = iteration, y = max_diff, lty = which_max)) +
-  scale_y_continuous(name = "Percentage difference from target value") +
-  scale_x_continuous(name = "Iteration") +
-  scale_linetype(name = "") +
-  theme_minimal()
-```
-
-## Map desire lines
-```{r}
-zone_boundaries <- here("zones",
-              "boundaries.geojson") %>%
-  st_read(quiet = TRUE)
-
-desire_lines_HBO <- od_to_sf(HBO_dist$flows, zone_boundaries, silent = TRUE) %>%
-  filter(flow > 0)
-
-ggplot(desire_lines_HBO) +
-  #annotation_map_tile(type = "cartolight", zoom = 10, progress = "none") +
-  geom_sf(aes(alpha = flow)) +
-  theme_void()
-```
-## Create maps with major attractions only
-## for HBO trips
-```{r}
-big_attraction <- zones[zones$hbo_attr_bal == max(zones$hbo_attr_bal),]$GEOID
-
-big_attraction
-```
-
-```{r}
-desire_lines_one_zone <- desire_lines_HBO %>%
-  filter(d_id == big_attraction)
-
-ggplot(desire_lines_one_zone) +
-  annotation_map_tile(type = "cartolight", zoom = 11, progress = "none") +
-  geom_sf(aes(alpha = flow)) +
-  theme_void()
-
-ggsave("images/HBO_majorattraction_flow.png",
-       width = 20, height = 15, units = "cm",dpi = 300)
-```
-## For HBW trips
-```{r}
-desire_lines_HBW <- od_to_sf(HBW_dist$flows, zone_boundaries, silent = TRUE) %>%
-  filter(flow > 0)
-
-big_attraction <- zones[zones$hbw_attr_bal == max(zones$hbw_attr_bal),]$GEOID
-
-big_attraction
-
-desire_lines_one_zone <- desire_lines_HBW %>%
-  filter(d_id == big_attraction)
-
-ggplot(desire_lines_one_zone) +
-  annotation_map_tile(type = "cartolight", zoom = 11, progress = "none") +
-  geom_sf(aes(alpha = flow)) +
-  theme_void()
-
-ggsave("images/HBW_majorattraction_flow.png",
-       width = 20, height = 15, units = "cm",dpi = 300)
-```
-## for NHB trips
-```{r}
-desire_lines_NHB <- od_to_sf(NHB_dist$flows, zone_boundaries, silent = TRUE) %>%
-  filter(flow > 0)
-
-big_attraction <- zones[zones$nhb_attr_bal == max(zones$nhb_attr_bal),]$GEOID
-
-big_attraction
-
-desire_lines_one_zone <- desire_lines_NHB %>%
-  filter(d_id == big_attraction)
-
-ggplot(desire_lines_one_zone) +
-  annotation_map_tile(type = "cartolight", zoom = 11, progress = "none") +
-  geom_sf(aes(alpha = flow)) +
-  theme_void()
-
-ggsave("images/NHB_majorattraction_flow.png",
-       width = 20, height = 15, units = "cm",dpi = 300)
-```
 
 
 ## Compare calculated travel times to observed travel times
@@ -294,7 +204,7 @@ NHB_mean_time
 
 #Save skim csv files
 ```{r}
-write_csv(skims, file = here("existing", 
+write_csv(skims, file = here("alternative", 
                              "data",
                              "skims.csv"))
 ```
