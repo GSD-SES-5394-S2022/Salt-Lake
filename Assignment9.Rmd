@@ -13,6 +13,8 @@ library(knitr)
 library(kableExtra)
 library(survey)
 library(srvyr)
+library(treemapify)
+library(RColorBrewer)
 ```
 #Transit fare per unlinked trip
 ```{r}
@@ -200,14 +202,11 @@ bike_const_NHB <- log(bike_share_NHB / (1 - bike_share_NHB))
 
 ```
 
-## Estimating utility of each mode based on the coefficients from NCHRP Table 4.11 for Model I. Assume the cost of parking is zero for all zones.
-
-## HBO trips: We select Model I to estimate the mode shares, since our city has over 1 million population and our model includes non-motorized modes.
-## HBW trips: We select Model H to estimate the mode shares, since our city has over 1 million population and our model includes non-motorized modes.
-## NHB trips: We select Model I (or M) to estimate the mode shares, since our city has over 1 million population and our model includes non-motorized modes.
+## Estimating utility of each mode based on the coefficients from NCHRP Table 4.11 for selected models considering that Salt Lake MSA region has over 1 million population and our model includes non-motorized modes. We sssume the cost of parking as zero for all zones.
 
 ```{r}
-#HBO
+#HBO - We select Model I to estimate the mode shares.
+
 skims <- skims %>%
   mutate(utility_transit_HBO = transit_const_HBO +
                                ride_time * -0.008  +
@@ -246,7 +245,8 @@ skims <- skims %>%
                                  na.rm = TRUE)) %>%
   ungroup()
 
-#HBW
+#HBW - We select Model H to estimate the mode shares.
+
 skims <- skims %>%
     mutate(utility_transit_HBW = transit_const_HBW +
                                ride_time * -0.033  +
@@ -285,7 +285,8 @@ skims <- skims %>%
                                  na.rm = TRUE)) %>%
   ungroup()
 
-#NHB
+#NHB - We select Model I to estimate the mode shares.
+
 skims <- skims %>%
   mutate(utility_transit_NHB = transit_const_NHB +
                                ride_time * -0.020  +
@@ -744,13 +745,14 @@ NHB_modeled_mode_by_purpose_2 <- tibble(
   pct_walk = sum(skims$n_walk_NHB) / 
                 sum(skims$NHB_flow))
 
-model_compare2 <- rbind(model_compare, NHB_modeled_mode_by_purpose_1, NHB_modeled_mode_by_purpose_2) 
+model_compare2 <- rbind(model_compare, NHB_modeled_mode_by_purpose_2) 
 
 model_compare2
 ```
 
-# Visualization
-## Tree maps
+# Visualization - Stacked bar charts for mode share
+## HBO
+
 ```{r}
 
 modeled_mode_percentage <- c(
@@ -773,21 +775,23 @@ HBO_mode_tibble <- tibble(bucket = c("Share of Bike Trips",
 
                      Percentage = as.numeric(modeled_mode_percentage*100)
                      )
+bar_chart <- ggplot(HBO_mode_tibble, aes(x = 1, 
+                                     y = Percentage, 
+                                     fill = bucket,
+                                     label = paste0(round(Percentage), "%"))) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "PuBuGn") +
+  geom_text(position = position_stack(vjust = 0.5))
+  
+bar_chart
 
-ggplot(HBO_mode_tibble, aes(area = Percentage, fill= bucket)) +
-  geom_treemap(show.legend = FALSE) +
-  geom_treemap_text(aes(label = paste(bucket, "\n",
-                                      prettyNum(Percentage, digits = 0),
-                                      "%",sep = "")), 
-                        color = "black") +
-  scale_fill_brewer(palette = "PuBuGn")
-
-ggsave("images/HBO_mode_percentage_exs_exs.png",
-      width = 20, height = 9, units = "cm",dpi = 300)
+ggsave("images/HBO_mode_percentage_exs.png",
+      width = 20, height = 10, units = "cm",dpi = 300)
 ```
-
 ## HBW
+
 ```{r}
+
 modeled_mode_percentage <- c(
   sum(skims$n_bike_HBW) / 
                  sum(skims$HBW_flow),
@@ -808,19 +812,19 @@ HBW_mode_tibble <- tibble(bucket = c("Share of Bike Trips",
 
                      Percentage = as.numeric(modeled_mode_percentage*100)
                      )
-
-ggplot(HBW_mode_tibble, aes(area = Percentage, fill= bucket)) +
-  geom_treemap(show.legend = FALSE) +
-  geom_treemap_text(aes(label = paste(bucket, "\n",
-                                      prettyNum(Percentage, digits = 0),
-                                      "%",sep = "")), 
-                        color = "black") +
-  scale_fill_brewer(palette = "PuBuGn")
+bar_chart <- ggplot(HBW_mode_tibble, aes(x = 1, 
+                                     y = Percentage, 
+                                     fill = bucket,
+                                     label = paste0(round(Percentage), "%"))) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "PuBuGn") +
+  geom_text(position = position_stack(vjust = 0.5))
+  
+bar_chart
 
 ggsave("images/HBW_mode_percentage_exs.png",
-      width = 20, height = 9, units = "cm",dpi = 300)
+      width = 20, height = 10, units = "cm",dpi = 300)
 ```
-
 ## NHB
 
 ```{r}
@@ -845,17 +849,20 @@ NHB_mode_tibble <- tibble(bucket = c("Share of Bike Trips",
                      Percentage = as.numeric(modeled_mode_percentage*100)
                      )
 
-ggplot(NHB_mode_tibble, aes(area = Percentage, fill= bucket)) +
-  geom_treemap(show.legend = FALSE) +
-  geom_treemap_text(aes(label = paste(bucket, "\n",
-                                      prettyNum(Percentage, digits = 0),
-                                      "%",sep = "")), 
-                        color = "black") +
-  scale_fill_brewer(palette = "PuBuGn")
+bar_chart <- ggplot(NHB_mode_tibble, aes(x = 1, 
+                                     y = Percentage, 
+                                     fill = bucket,
+                                     label = paste0(round(Percentage), "%"))) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "PuBuGn") +
+  geom_text(position = position_stack(vjust = 0.5))
+  
+bar_chart
 
 ggsave("images/NHB_mode_percentage_exs.png",
-      width = 20, height = 9, units = "cm",dpi = 300)
+      width = 20, height = 10, units = "cm",dpi = 300)
 ```
+
 
 ```{r}
 map_data <- skims %>%
@@ -921,6 +928,7 @@ map
 ggsave("images/HBO_fromid_mode_transit_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
+
 ```{r}
 map_palette <- brewer.pal(5, "PuBuGn")
 
@@ -1075,3 +1083,4 @@ map
 ggsave("images/NHB_fromid_mode_car_exs.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
+
