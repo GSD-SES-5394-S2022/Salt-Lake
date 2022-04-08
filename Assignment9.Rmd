@@ -1390,3 +1390,119 @@ model_compare_alt <- rbind(mode_by_purpose, HBO_modeled_mode_by_purpose_2,
 
 model_compare_alt
 ```
+
+
+# Visualization - Stacked bar charts for mode share
+## HBO
+
+```{r}
+
+HBO_modeled_mode_percentage_alt <- c(
+  sum(skims_alt$n_bike_HBO) / 
+                 sum(skims_alt$HBO_flow),
+  sum(skims_alt$n_SOV_HBO) / 
+                sum(skims_alt$HBO_flow),
+  sum(skims_alt$n_HOV_HBO) / 
+                sum(skims_alt$HBO_flow),
+  sum(skims_alt$n_transit_HBO) / 
+                sum(skims_alt$HBO_flow),
+  sum(skims_alt$n_walk_HBO) / 
+                sum(skims_alt$HBO_flow))
+                 
+HBO_mode_alt_tibble <- tibble(bucket = c("Share of Bike Trips",
+                               "Share of SOV Trips",
+                               "Share of HOV Trips",
+                               "Share of Transit Trips",
+                               "Share of Walk Trips"),
+
+                     Percentage = as.numeric(HBO_modeled_mode_percentage_alt*100)
+                     )
+bar_chart <- ggplot(HBO_mode_alt_tibble, aes(x = 1, 
+                                     y = Percentage, 
+                                     fill = bucket,
+                                     label = paste0(round(Percentage), "%"))) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "PuBuGn") +
+  geom_text(position = position_stack(vjust = 0.5))
+  
+bar_chart
+
+ggsave("images/HBO_mode_percentage_alt.png",
+      width = 20, height = 10, units = "cm",dpi = 300)
+```
+
+## HBW
+
+```{r}
+
+HBW_modeled_mode_percentage_alt <- c(
+  sum(skims_alt$n_bike_HBW) / 
+                 sum(skims_alt$HBW_flow),
+  sum(skims_alt$n_SOV_HBW) / 
+                sum(skims_alt$HBW_flow),
+  sum(skims_alt$n_HOV_HBW) / 
+                sum(skims_alt$HBW_flow),
+  sum(skims_alt$n_transit_HBW) / 
+                sum(skims_alt$HBW_flow),
+  sum(skims_alt$n_walk_HBW) / 
+                sum(skims_alt$HBW_flow))
+                 
+HBW_mode_alt_tibble <- tibble(bucket = c("Share of Bike Trips",
+                               "Share of SOV Trips",
+                               "Share of HOV Trips",
+                               "Share of Transit Trips",
+                               "Share of Walk Trips"),
+
+                     Percentage = as.numeric(HBW_modeled_mode_percentage_alt*100)
+                     )
+bar_chart <- ggplot(HBW_mode_alt_tibble, aes(x = 1, 
+                                     y = Percentage, 
+                                     fill = bucket,
+                                     label = paste0(round(Percentage), "%"))) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "PuBuGn") +
+  geom_text(position = position_stack(vjust = 0.5))
+  
+bar_chart
+
+ggsave("images/HBW_mode_percentage_alt.png",
+      width = 20, height = 10, units = "cm",dpi = 300)
+```
+
+## NHB
+
+```{r}
+
+NHB_modeled_mode_percentage_alt <- c(
+  sum(skims_alt$n_bike_NHB) / 
+                 sum(skims_alt$NHB_flow),
+  sum(skims_alt$n_SOV_NHB) / 
+                sum(skims_alt$NHB_flow),
+  sum(skims_alt$n_HOV_NHB) / 
+                sum(skims_alt$NHB_flow),
+  sum(skims_alt$n_transit_NHB) / 
+                sum(skims_alt$NHB_flow),
+  sum(skims_alt$n_walk_NHB) / 
+                sum(skims_alt$NHB_flow))
+                 
+NHB_mode_alt_tibble <- tibble(bucket = c("Share of Bike Trips",
+                               "Share of SOV Trips",
+                               "Share of HOV Trips",
+                               "Share of Transit Trips",
+                               "Share of Walk Trips"),
+
+                     Percentage = as.numeric(NHB_modeled_mode_percentage_alt*100)
+                     )
+bar_chart <- ggplot(HBO_mode_alt_tibble, aes(x = 1, 
+                                     y = Percentage, 
+                                     fill = bucket,
+                                     label = paste0(round(Percentage), "%"))) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "PuBuGn") +
+  geom_text(position = position_stack(vjust = 0.5))
+  
+bar_chart
+
+ggsave("images/NHB_mode_percentage_alt.png",
+      width = 20, height = 10, units = "cm",dpi = 300)
+```
