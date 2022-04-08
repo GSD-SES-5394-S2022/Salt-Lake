@@ -13,6 +13,8 @@ library(knitr)
 library(kableExtra)
 library(survey)
 library(srvyr)
+library(treemapify)
+library(RColorBrewer)
 ```
 #Transit fare per unlinked trip
 ```{r}
@@ -22,8 +24,6 @@ cost_per_ride
 ```
 
 #Driving cost per minute
-
-
 
 ```{r}
 vehs <- read_csv(here("existing","data", "vehpub.csv"), 
@@ -61,6 +61,7 @@ total_gas_cost <- veh_svy %>%
 
 kable(total_gas_cost, format.args = list(big.mark = ","))
 ```
+
 #calculate fuel cost per minute
 
 ```{r}
@@ -82,6 +83,7 @@ head(skims, 5) %>%
   kable_styling() %>%
   scroll_box(width = "500px", height = "320px")
 ```
+
 ##Cost of transit and cost of driving
 ```{r}
 skims <- skims %>%
@@ -484,9 +486,9 @@ model_compare
 # Calibrate the models
 ##HBO
 ```{r}
-transit_const_HBO  <- -1.7 #-4.055
+transit_const_HBO  <- -8 #-4.055
 SOV_const_HBO <- -0.85 #-0.95
-HOV_const_HBO <- 0.08 #0.15
+HOV_const_HBO <- 0.12 #0.15
 bike_const_HBO <- -50 #-7.82
 walk_const_HBO <- -2.2 #-1.60
 
@@ -562,7 +564,7 @@ modeled_mode_by_purpose_2 <- tibble(
   pct_walk = sum(skims$n_walk_HBO) / 
                 sum(skims$HBO_flow))
 
-model_compare2 <- rbind(model_compare, HBO_modeled_mode_by_purpose_1, modeled_mode_by_purpose_2) 
+model_compare2 <- rbind(model_compare, modeled_mode_by_purpose_2) 
 
 model_compare2
 ```
