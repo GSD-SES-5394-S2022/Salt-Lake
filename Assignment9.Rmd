@@ -13,7 +13,6 @@ library(knitr)
 library(kableExtra)
 library(survey)
 library(srvyr)
-library(treemapify)
 library(RColorBrewer)
 ```
 #Transit fare per unlinked trip
@@ -557,7 +556,7 @@ skims <- skims %>%
                   n_walk_HBO = 0,
                   n_bike_HBO =0)) 
 
-modeled_mode_by_purpose_2 <- tibble(
+HBO_modeled_mode_by_purpose_2 <- tibble(
   purpose = "HBO_model 2", 
   pct_bike = sum(skims$n_bike_HBO) / 
                  sum(skims$HBO_flow),
@@ -677,11 +676,11 @@ model_compare3
 # walk_const_NHB <- -2.46
 
 ```{r}
-transit_const_NHB  <- -2.9 
-SOV_const_NHB <- -1.2 
-HOV_const_NHB <- -0.7
-bike_const_NHB <- -15 
-walk_const_NHB <- -0.8
+transit_const_NHB  <- -2.8 
+SOV_const_NHB <- -1.1 
+HOV_const_NHB <- -0.6
+bike_const_NHB <- -20 
+walk_const_NHB <- -0.5
 
 skims <- skims %>%
   mutate(utility_transit_NHB = transit_const_NHB +
@@ -1383,15 +1382,15 @@ HBW_modeled_mode_by_purpose_1_alt <- tibble(
 NHB_modeled_mode_by_purpose_1_alt <- tibble(
   purpose = "NHB_model_alt", 
   pct_bike = sum(skims_alt$n_bike_NHB) / 
-                 sum(skims_alt$HBW_flow),
+                 sum(skims_alt$NHB_flow),
   pct_SOV = sum(skims_alt$n_SOV_NHB) / 
-                sum(skims_alt$HBW_flow),
+                sum(skims_alt$NHB_flow),
   pct_HOV = sum(skims_alt$n_HOV_NHB) / 
-                sum(skims_alt$HBW_flow),
+                sum(skims_alt$NHB_flow),
   pct_transit = sum(skims_alt$n_transit_NHB) / 
-                sum(skims_alt$HBW_flow),
+                sum(skims_alt$NHB_flow),
   pct_walk = sum(skims_alt$n_walk_NHB) / 
-                sum(skims_alt$HBW_flow))
+                sum(skims_alt$NHB_flow))
 
 model_compare_alt <- rbind(mode_by_purpose, HBO_modeled_mode_by_purpose_2,
                        HBW_modeled_mode_by_purpose_2, 
