@@ -31,11 +31,13 @@ temp <- tempfile()
 download.file("https://nhts.ornl.gov/assets/2016/download/csv.zip", temp)
 
 vehs <- read_csv(unz(temp, "vehpub.csv"), 
-                 show_col_types = FALSE) %>%
+                 #show_col_types = FALSE
+                 ) %>%
   filter(HH_CBSA == "41620")
 
 trips <- read_csv(unz(temp, "trippub.csv"), 
-                      show_col_types = FALSE) %>%
+                      #show_col_types = FALSE
+                  ) %>%
   filter(HH_CBSA == "41620")
 
 car_trips <- trips %>%
@@ -81,7 +83,8 @@ cost_per_minute
 skims <- here("existing",
               "data",
               "skims.csv") %>%
-  read_csv(show_col_types = FALSE)
+  read_csv(#show_col_types = FALSE
+  )
 
 # head(skims, 5) %>%
 #   kable() %>%
@@ -880,7 +883,8 @@ ggsave("images/NHB_mode_percentage_exs.png",
 skims_alt <- here("alternative",
               "data",
               "skims.csv") %>%
-  read_csv(show_col_types = FALSE )
+  read_csv(#show_col_types = FALSE 
+  )
 
 ```
 
@@ -1301,6 +1305,7 @@ ggsave("images/NHB_mode_percentage_alt.png",
 ```{r}
 map_data <- skims_alt %>%
   select(fromId,toId,n_SOV_HBO,n_HOV_HBO,n_bike_HBO,n_transit_HBO,n_walk_HBO,HBO_flow)%>%
+  filter(fromId != 49035110104 & fromId != 49035114800 & & fromId != 49035100200)%>%
   group_by(fromId) %>%
   summarize(pct_bike = sum(n_bike_HBO)/sum(HBO_flow),
             pct_walk = sum(n_walk_HBO)/sum(HBO_flow),
@@ -1412,6 +1417,7 @@ ggsave("images/HBO_fromid_mode_SOV_alt.png",
 ```{r}
 map_data <- skims_alt %>%
   select(fromId,toId,n_SOV_HBW,n_HOV_HBW,n_bike_HBW,n_transit_HBW,n_walk_HBW,HBW_flow)%>%
+  filter(fromId != 49035110104 & fromId != 49035114800 & & fromId != 49035100200)%>%
   group_by(fromId) %>%
   summarize(pct_bike = sum(n_bike_HBW)/sum(HBW_flow),
             pct_walk = sum(n_walk_HBW)/sum(HBW_flow),
@@ -1514,6 +1520,7 @@ ggsave("images/HBW_fromid_mode_HOV_alt.png",
 ```{r}
 map_data <- skims_alt %>%
   select(fromId,toId,n_SOV_NHB,n_HOV_NHB,n_bike_NHB,n_transit_NHB,n_walk_NHB,NHB_flow)%>%
+  filter(fromId != 49035110104 & fromId != 49035114800 & & fromId != 49035100200)%>%
   group_by(fromId) %>%
   summarize(pct_bike = sum(n_bike_NHB)/sum(NHB_flow),
             pct_walk = sum(n_walk_NHB)/sum(NHB_flow),
