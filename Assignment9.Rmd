@@ -1305,7 +1305,7 @@ ggsave("images/NHB_mode_percentage_alt.png",
 ```{r}
 map_data <- skims_alt %>%
   select(fromId,toId,n_SOV_HBO,n_HOV_HBO,n_bike_HBO,n_transit_HBO,n_walk_HBO,HBO_flow)%>%
-  filter(fromId != 49035110104 & fromId != 49035114800 & & fromId != 49035100200)%>%
+  filter(fromId != 49035110104 & fromId != 49035114800 & fromId != 49035100200)%>%
   group_by(fromId) %>%
   summarize(pct_bike = sum(n_bike_HBO)/sum(HBO_flow),
             pct_walk = sum(n_walk_HBO)/sum(HBO_flow),
@@ -1417,7 +1417,7 @@ ggsave("images/HBO_fromid_mode_SOV_alt.png",
 ```{r}
 map_data <- skims_alt %>%
   select(fromId,toId,n_SOV_HBW,n_HOV_HBW,n_bike_HBW,n_transit_HBW,n_walk_HBW,HBW_flow)%>%
-  filter(fromId != 49035110104 & fromId != 49035114800 & & fromId != 49035100200)%>%
+  filter(fromId != 49035110104 & fromId != 49035114800 & fromId != 49035100200)%>%
   group_by(fromId) %>%
   summarize(pct_bike = sum(n_bike_HBW)/sum(HBW_flow),
             pct_walk = sum(n_walk_HBW)/sum(HBW_flow),
@@ -1520,7 +1520,7 @@ ggsave("images/HBW_fromid_mode_HOV_alt.png",
 ```{r}
 map_data <- skims_alt %>%
   select(fromId,toId,n_SOV_NHB,n_HOV_NHB,n_bike_NHB,n_transit_NHB,n_walk_NHB,NHB_flow)%>%
-  filter(fromId != 49035110104 & fromId != 49035114800 & & fromId != 49035100200)%>%
+  filter(fromId != 49035110104 & fromId != 49035114800 & fromId != 49035100200)%>%
   group_by(fromId) %>%
   summarize(pct_bike = sum(n_bike_NHB)/sum(NHB_flow),
             pct_walk = sum(n_walk_NHB)/sum(NHB_flow),
@@ -1586,4 +1586,16 @@ map <- ggplot(zones) +
 map
 ggsave("images/NHB_fromid_mode_car_alt.png",
        width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+#Save skim csv files
+```{r}
+write_csv(skims, file = here("existing", 
+                             "data",
+                             "skims.csv"))
+
+write_csv(skims_alt, file = here("alternative", 
+                             "data",
+                             "skims_alt.csv"))
+
 ```
