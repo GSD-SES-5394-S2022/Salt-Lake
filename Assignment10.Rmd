@@ -1,5 +1,5 @@
 ---
-title: "Assignment10"
+title: "Assignment 10"
 author: "Charuvi Begwani, Aijing Li"
 date: "4/11/2022"
 output: html_document
@@ -15,6 +15,7 @@ library(tidyverse)
 library(stplanr)
 library(r5r)
 library(sf)
+library(tidyverse)
 ```
 
 #Load data from previous assignments including production and attraction zone IDs, the transit routes included in that transit trip, and the number of trips by each mode for each trip purpose.
@@ -166,5 +167,58 @@ route_trips_NHB <- NHB_OD_table %>%
   group_by(route) %>%
   summarize(ridership = round(sum(flow)))
 
+```
+
+#Find VMT and PMT by mode
+##Calculate trip distances
+
+```{r}
+centroids <- here("zones",
+                   "centroids.geojson") %>%
+  st_read() %>%
+  rename(GEOID = id) %>%
+  filter(!st_is_empty(.))
+
+origins <- centroids %>%
+  slice(rep(1:n(), each = n())) %>%
+  mutate(dest_order =
+           rep(seq(1:length(centroids$id)),
+               length(centroids$id)))
+
+destinations <- origins %>%
+  arrange(dest_order)
+
+r5r_core_existing <- here("existing",
+                          "networks") %>%
+  setup_r5(verbose = FALSE)
+
+ped_dist <- detailed_itineraries(r5r_core_existing,
+                                 origins = origins,
+                                 destinations = destinations,
+                                 mode = "WALK",
+                                 verbose = FALSE)  %>%
+  mutate(miles = distance / 1609.34) %>%
+  select(fromId, toId, miles) %>%
+  st_drop_geometry()
+
+drive_dist <- detailed_itineraries(r5r_core_existing,
+                                 origins = origins,
+                                 destinations = destinations,
+                                 mode = "CAR",
+                                 verbose = FALSE) %>%
+  mutate(miles = distance / 1609.34) %>%
+  select(fromId, toId, miles) %>%
+  st_drop_geometry()
+
+bike_dist <- detailed_itineraries(r5r_core_existing,
+                                 origins = origins,
+                                 destinations = destinations,
+                                 mode = "BICYCLE",
+                                 verbose = FALSE) %>%
+  mutate(miles = distance / 1609.34) %>%
+  select(fromId, toId, miles) %>%
+  st_drop_geometry()
+
+stop_r5()
 ```
 
