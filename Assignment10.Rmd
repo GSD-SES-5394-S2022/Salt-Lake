@@ -79,8 +79,8 @@ HBO_OD_table <- HBO_OD_mat %>%
 ```
 #Convert P-A matrix to O-D matrix: HBW Trips
 
-##Convert data frame to matrix
 ```{r}
+##Convert data frame to matrix
 HBW_PA_mat <- skims %>%
   od_to_odmatrix(attrib = "n_transit_HBW", 
                  name_orig = "fromId",
@@ -100,6 +100,31 @@ HBW_OD_table <- HBW_OD_mat %>%
          toId = dest) %>%
   left_join(skims) %>%
   select(-n_transit_HBW)
+
+```
+#Convert P-A matrix to O-D matrix: NHB Trips
+
+```{r}
+##Convert data frame to matrix
+NHB_PA_mat <- skims %>%
+  od_to_odmatrix(attrib = "n_transit_NHB", 
+                 name_orig = "fromId",
+                 name_dest = "toId") 
+
+NHB_PA_mat <- NHB_PA_mat[,row.names(NHB_PA_mat)]
+
+##Transpose trip matrix
+NHB_PA_mat_trans <- t(NHB_PA_mat)
+
+##Average matrix with its transpose and convert matrix to data frame
+NHB_OD_mat <- (NHB_PA_mat + NHB_PA_mat_trans) / 2
+
+NHB_OD_table <- NHB_OD_mat %>%
+  odmatrix_to_od() %>%
+  rename(fromId = orig,
+         toId = dest) %>%
+  left_join(skims) %>%
+  select(-n_transit_NHB)
 
 ```
 
@@ -129,4 +154,17 @@ route_trips_HBW <- HBW_OD_table %>%
   group_by(route) %>%
   summarize(ridership = round(sum(flow)))
 
+route_trips_NHB <- NHB_OD_table %>%
+  filter(flow > 0 & !is.na(routes)) %>%
+  mutate(route_1 = str_split_fixed(routes, "\\|", 3)[,1],
+         route_2 = str_split_fixed(routes, "\\|", 3)[,2],
+         route_3 = str_split_fixed(routes, "\\|", 3)[,3]) %>%
+  pivot_longer(cols = c(route_1, route_2, route_3),
+               values_to = "route") %>%
+  filter(route != "") %>%
+  select(route, flow) %>%
+  group_by(route) %>%
+  summarize(ridership = round(sum(flow)))
+
 ```
+
