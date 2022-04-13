@@ -24,7 +24,9 @@ library(tidyverse)
 skims <- here("existing",
                      "data",
                      "skims.csv") %>%
-  read_csv(show_col_types = FALSE) %>%
+  read_csv(
+    #show_col_types = FALSE
+    ) %>%
   select(fromId, 
          toId, 
          n_transit_HBO,
@@ -176,7 +178,6 @@ route_trips_NHB <- NHB_OD_table %>%
 centroids <- here("zones",
                    "centroids.geojson") %>%
   st_read() %>%
-  rename(GEOID = id) %>%
   filter(!st_is_empty(.))
 
 origins <- centroids %>%
@@ -220,5 +221,37 @@ bike_dist <- detailed_itineraries(r5r_core_existing,
   st_drop_geometry()
 
 stop_r5()
+```
+
+## Calculate PMT by mode
+
+```{r}
+summary <- summarize(PMT_car, total_SOV_miles = sum(PMT_SOV_HBO),
+             total_HOV_miles = sum(PMT_HOV_HBO))
+```
+
+```{r}
+PMT_car <- skims %>%
+  left_join(drive_dist, by = c("fromId", "toId")) %>%
+  select(n_SOV_HBO, n_HOV_HBO, miles) %>%
+  mutate(PMT_SOV_HBO = n_SOV_HBO * miles,
+         PMT_HOV_HBO = n_HOV_HBO * miles) %>%
+  filter(is.na(PMT_HOV_HBO) != TRUE & is.na(PMT_SOV_HBO) != TRUE) %>%
+  summarize(total_SOV_miles = sum(PMT_SOV_HBO),
+             total_HOV_miles = sum(PMT_HOV_HBO))
+
+
+PMT_car
+```
+
+```{r}
+#using parameter for HBO pm in NCHRP 716, Table 4-16
+VMT <- PMT_car$total_SOV_miles[1] + 
+       PMT_car$total_HOV_miles[1] / 1.66
+
+VMT
+```
+```{r}
+
 ```
 
