@@ -273,7 +273,7 @@ PMT_bike_HBO <- skims %>%
   select(n_bike_HBO, miles) %>%
   mutate(PMT_bike_HBO = n_bike_HBO * miles,
          )%>%
-  # filter out NA values because those rows have 0 SOV and HOV trips
+  # filter out NA values because those rows have 0 bike trips
   filter(is.na(PMT_bike_HBO) != TRUE) %>%
   summarize(total_bike_miles = sum(PMT_bike_HBO)
              )
@@ -422,4 +422,54 @@ write_csv(PMT_walk, here("existing",
               "data",
               "PMT_walk.csv"))
 ```
+
+```{r}
+hist <- ggplot(route_trip_by_purporse, aes(x=ridership_HBO)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Frequency",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Home-based nonwork trip transit ridership by routes")
+
+ggsave("images/transit_ridership_HBO.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+hist <- ggplot(route_trip_by_purporse, aes(x=ridership_HBW)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Frequency",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Home-based work trip transit ridership by routes")
+
+ggsave("images/transit_ridership_HBW.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+hist <- ggplot(route_trip_by_purporse, aes(x=ridership_NHB)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Frequency",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "Non Home-based trip transit ridership by routes")
+
+ggsave("images/transit_ridership_NHB.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+hist <- ggplot(route_trip_by_purporse, aes(x=sum_ridership)) + 
+  geom_histogram(color = "white", fill = 'lightblue')
+
+hist +theme_bw(base_size = 11) +
+  scale_y_continuous(name = "Frequency",
+                     breaks = seq(0, 100, by =10)) +
+  scale_x_continuous(name = "All trips transit ridership by routes")
+
+ggsave("images/transit_ridership_sum.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
 
