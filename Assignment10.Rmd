@@ -18,12 +18,39 @@ library(sf)
 library(tidyverse)
 ```
 
-#Load data from previous assignments including production and attraction zone IDs, the transit routes included in that transit trip, and the number of trips by each mode for each trip purpose.
+#Load data from previous assignments including production and attraction zone IDs, the transit routes included in that transit trip, and the number of trips by each mode for each trip purpose for both existing and alternative.
 
 ```{r}
 skims <- here("existing",
                      "data",
                      "skims.csv") %>%
+  read_csv(
+    #show_col_types = FALSE
+    ) %>%
+  select(fromId, 
+         toId, 
+         n_transit_HBO,
+         n_SOV_HBO,
+         n_HOV_HBO,
+         n_walk_HBO,
+         n_bike_HBO,
+         n_transit_HBW,
+         n_SOV_HBW,
+         n_HOV_HBW,
+         n_walk_HBW,
+         n_bike_HBW,
+         n_transit_NHB,
+         n_SOV_NHB,
+         n_HOV_NHB,
+         n_walk_NHB,
+         n_bike_NHB,
+         routes) %>%
+  mutate(fromId = as.character(fromId),
+         toId = as.character(toId))
+
+skims_alt <- here("alternative",
+                     "data",
+                     "skims_alt.csv") %>%
   read_csv(
     #show_col_types = FALSE
     ) %>%
@@ -59,20 +86,14 @@ HBO_PA_mat <- skims %>%
                  name_dest = "toId") 
 
 HBO_PA_mat <- HBO_PA_mat[,row.names(HBO_PA_mat)]
-```
 
 ##Transpose trip matrix
-```{r}
 HBO_PA_mat_trans <- t(HBO_PA_mat)
-```
 
 ##Average matrix with its transpose 
-```{r}
 HBO_OD_mat <- (HBO_PA_mat + HBO_PA_mat_trans) / 2
-```
 
 ##Convert matrix to data frame
-```{r}
 HBO_OD_table <- HBO_OD_mat %>%
   odmatrix_to_od() %>%
   rename(fromId = orig,
@@ -170,18 +191,167 @@ route_trips_NHB <- NHB_OD_table %>%
   summarize(ridership_NHB = round(sum(flow)))
 
 ```
-## join all modes
+
+## join all purposes - existing
+
 ```{r}
 #join all table and sum 
 route_trip_by_purporse<-left_join(route_trips_HBO,route_trips_HBW,by="route")%>%
                         left_join(route_trips_NHB,by="route")%>%
                         select(route,ridership_HBO,ridership_HBW,ridership_NHB)%>%
                         mutate(sum_ridership=ridership_HBO+ridership_HBW+ridership_NHB)
-                        
+
+route_trip_by_purporse
 ```
 
+## Transit ridership estimation for alternative
+
+#Convert P-A matrix to O-D matrix: HBO Trips - alternative
+##Convert data frame to matrix
 ```{r}
-route_trip_by_purporse
+HBO_PA_mat_alt <- skims_alt %>%
+  od_to_odmatrix(attrib = "n_transit_HBO", 
+                 name_orig = "fromId",
+                 name_dest = "toId") 
+
+HBO_PA_mat_alt <- HBO_PA_mat_alt[,row.names(HBO_PA_mat_alt)]
+
+##Transpose trip matrix
+HBO_PA_mat_trans_alt <- t(HBO_PA_mat_alt)
+
+##Average matrix with its transpose 
+HBO_OD_mat_alt <- (HBO_PA_mat_alt + HBO_PA_mat_trans_alt) / 2
+
+##Convert matrix to data frame
+HBO_OD_table_alt <- HBO_OD_mat_alt %>%
+  odmatrix_to_od() %>%
+  rename(fromId = orig,
+         toId = dest) %>%
+  left_join(skims_alt) %>%
+  select(-n_transit_HBO)
+```
+
+#Convert P-A matrix to O-D matrix: HBW Trips - alternative
+
+```{r}
+##Convert data frame to matrix
+HBW_PA_mat_alt <- skims_alt %>%
+  od_to_odmatrix(attrib = "n_transit_HBW", 
+                 name_orig = "fromId",
+                 name_dest = "toId") 
+
+HBW_PA_mat_alt <- HBW_PA_mat_alt[,row.names(HBW_PA_mat_alt)]
+
+##Transpose trip matrix
+HBW_PA_mat_trans_alt <- t(HBW_PA_mat_alt)
+
+##Average matrix with its transpose and convert matrix to data frame
+HBW_OD_mat_alt <- (HBW_PA_mat_alt + HBW_PA_mat_trans_alt) / 2
+
+HBW_OD_table_alt <- HBW_OD_mat_alt %>%
+  odmatrix_to_od() %>%
+  rename(fromId = orig,
+         toId = dest) %>%
+  left_join(skims_alt) %>%
+  select(-n_transit_HBW)
+
+```
+
+#Convert P-A matrix to O-D matrix: NHB Trips - alternative
+
+```{r}
+##Convert data frame to matrix
+NHB_PA_mat_alt <- skims_alt %>%
+  od_to_odmatrix(attrib = "n_transit_NHB", 
+                 name_orig = "fromId",
+                 name_dest = "toId") 
+
+NHB_PA_mat_alt <- NHB_PA_mat_alt[,row.names(NHB_PA_mat_alt)]
+
+##Transpose trip matrix
+NHB_PA_mat_trans_alt <- t(NHB_PA_mat_alt)
+
+##Average matrix with its transpose and convert matrix to data frame
+NHB_OD_mat_alt <- (NHB_PA_mat_alt + NHB_PA_mat_trans_alt) / 2
+
+NHB_OD_table_alt <- NHB_OD_mat_alt %>%
+  odmatrix_to_od() %>%
+  rename(fromId = orig,
+         toId = dest) %>%
+  left_join(skims_alt) %>%
+  select(-n_transit_NHB)
+
+```
+
+#Count trips using each route - alternative
+
+```{r}
+route_trips_HBO_alt <- HBO_OD_table_alt %>%
+  filter(flow > 0 & !is.na(routes)) %>%
+  mutate(route_1 = str_split_fixed(routes, "\\|", 3)[,1],
+         route_2 = str_split_fixed(routes, "\\|", 3)[,2],
+         route_3 = str_split_fixed(routes, "\\|", 3)[,3]) %>%
+  pivot_longer(cols = c(route_1, route_2, route_3),
+               values_to = "route") %>%
+  filter(route != "") %>%
+  select(route, flow) %>%
+  group_by(route) %>%
+  summarize(ridership_HBO = round(sum(flow)))
+
+route_trips_HBW_alt <- HBW_OD_table_alt %>%
+  filter(flow > 0 & !is.na(routes)) %>%
+  mutate(route_1 = str_split_fixed(routes, "\\|", 3)[,1],
+         route_2 = str_split_fixed(routes, "\\|", 3)[,2],
+         route_3 = str_split_fixed(routes, "\\|", 3)[,3]) %>%
+  pivot_longer(cols = c(route_1, route_2, route_3),
+               values_to = "route") %>%
+  filter(route != "") %>%
+  select(route, flow) %>%
+  group_by(route) %>%
+  summarize(ridership_HBW = round(sum(flow)))
+
+route_trips_NHB_alt <- NHB_OD_table_alt %>%
+  filter(flow > 0 & !is.na(routes)) %>%
+  mutate(route_1 = str_split_fixed(routes, "\\|", 3)[,1],
+         route_2 = str_split_fixed(routes, "\\|", 3)[,2],
+         route_3 = str_split_fixed(routes, "\\|", 3)[,3]) %>%
+  pivot_longer(cols = c(route_1, route_2, route_3),
+               values_to = "route") %>%
+  filter(route != "") %>%
+  select(route, flow) %>%
+  group_by(route) %>%
+  summarize(ridership_NHB = round(sum(flow)))
+
+```
+
+
+## join all purposes - alternative
+
+```{r}
+#join all table and sum 
+route_trip_by_purpose_alt<-left_join(route_trips_HBO_alt,route_trips_HBW_alt,by="route")%>%
+                        left_join(route_trips_NHB_alt,by="route")%>%
+                        select(route,ridership_HBO,ridership_HBW,ridership_NHB)%>%
+                        mutate(sum_ridership_alt=ridership_HBO+ridership_HBW+ridership_NHB)
+
+route_trip_by_purpose_alt
+```
+
+#Find change in ridership between existing and alternative scenario
+```{r}
+route_ridership_by_purpose_alt <- route_trip_by_purpose_alt %>%
+  rename(ridership_HBW_alt = ridership_HBW,
+         ridership_HBO_alt = ridership_HBO,
+         ridership_NHB_alt = ridership_NHB)
+
+ridership_change <- left_join(route_trip_by_purporse, route_ridership_by_purpose_alt, by = "route") %>% 
+  mutate(change_HBW = ridership_HBW_alt - ridership_HBW,
+         change_HBO = ridership_HBO_alt - ridership_HBO,
+         change_NHB = ridership_NHB_alt - ridership_NHB,
+         change_total = sum_ridership_alt - sum_ridership)
+
+ridership_change
+
 ```
 
 #Find VMT and PMT by mode
