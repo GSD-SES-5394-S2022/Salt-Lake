@@ -486,122 +486,122 @@ PMT_walk <- skims %>%
   filter(is.na(PMT_walk_HBO) != TRUE) %>%
   filter(is.na(PMT_walk_HBO) != TRUE) %>%
   summarize(total_walk_miles_HBO = sum(PMT_walk_HBO),
-            total_walk_miles = sum(PMT_walk_HBW),
-            total_walk_miles = sum(PMT_walk_NHB))
+            total_walk_miles_HBW = sum(PMT_walk_HBW),
+            total_walk_miles_NHB = sum(PMT_walk_NHB))
 
 PMT_walk
 ```
 
 
-## HBW
-```{r}
-PMT_car_HBW <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_SOV_HBW, n_HOV_HBW, miles) %>%
-  mutate(PMT_SOV_HBW = n_SOV_HBW * miles,
-         PMT_HOV_HBW = n_HOV_HBW * miles)%>%
-  # filter out NA values because those rows have 0 SOV and HOV trips
-  filter(is.na(PMT_HOV_HBW) != TRUE & is.na(PMT_SOV_HBW) != TRUE) %>%
-  summarize(total_SOV_miles = sum(PMT_SOV_HBW),
-             total_HOV_miles = sum(PMT_HOV_HBW))
+<!-- ## HBW -->
+<!-- ```{r} -->
+<!-- PMT_car_HBW <- skims %>% -->
+<!--   left_join(drive_dist, by = c("fromId", "toId")) %>% -->
+<!--   select(n_SOV_HBW, n_HOV_HBW, miles) %>% -->
+<!--   mutate(PMT_SOV_HBW = n_SOV_HBW * miles, -->
+<!--          PMT_HOV_HBW = n_HOV_HBW * miles)%>% -->
+<!--   # filter out NA values because those rows have 0 SOV and HOV trips -->
+<!--   filter(is.na(PMT_HOV_HBW) != TRUE & is.na(PMT_SOV_HBW) != TRUE) %>% -->
+<!--   summarize(total_SOV_miles = sum(PMT_SOV_HBW), -->
+<!--              total_HOV_miles = sum(PMT_HOV_HBW)) -->
 
 
-PMT_car_HBW
+<!-- PMT_car_HBW -->
 
-#using parameter for HBW pm for all auto modes in NCHRP 716, Table 4-16
-VMT_HBW <- PMT_car_HBW$total_SOV_miles[1] + 
-       PMT_car_HBW$total_HOV_miles[1] / 1.11
+<!-- #using parameter for HBW pm for all auto modes in NCHRP 716, Table 4-16 -->
+<!-- VMT_HBW <- PMT_car_HBW$total_SOV_miles[1] +  -->
+<!--        PMT_car_HBW$total_HOV_miles[1] / 1.11 -->
 
-VMT_HBW
-```
-```{r}
-PMT_bike_HBW <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_bike_HBW, miles) %>%
-  mutate(PMT_bike_HBW = n_bike_HBW * miles,
-         )%>%
-  filter(is.na(PMT_bike_HBO) != TRUE) %>%
-  summarize(total_bike_miles = sum(PMT_bike_HBO)
-             )
-
-
-PMT_bike_HBW
-```
-
-```{r}
-PMT_walk_HBW <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_walk_HBW, miles) %>%
-  mutate(PMT_walk_HBW = n_walk_HBW * miles,
-         )%>%
-  filter(is.na(PMT_walk_HBW) != TRUE) %>%
-  summarize(total_walk_miles = sum(PMT_walk_HBW)
-             )
+<!-- VMT_HBW -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- PMT_bike_HBW <- skims %>% -->
+<!--   left_join(drive_dist, by = c("fromId", "toId")) %>% -->
+<!--   select(n_bike_HBW, miles) %>% -->
+<!--   mutate(PMT_bike_HBW = n_bike_HBW * miles, -->
+<!--          )%>% -->
+<!--   filter(is.na(PMT_bike_HBO) != TRUE) %>% -->
+<!--   summarize(total_bike_miles = sum(PMT_bike_HBO) -->
+<!--              ) -->
 
 
-PMT_walk_HBW
-```
+<!-- PMT_bike_HBW -->
+<!-- ``` -->
 
-## NHB
-```{r}
-PMT_car_NHB <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_SOV_NHB, n_HOV_NHB, miles) %>%
-  mutate(PMT_SOV_NHB = n_SOV_NHB * miles,
-         PMT_HOV_NHB = n_HOV_NHB * miles)%>%
-  # filter out NA values because those rows have 0 SOV and HOV trips
-  filter(is.na(PMT_HOV_NHB) != TRUE & is.na(PMT_SOV_NHB) != TRUE) %>%
-  summarize(total_SOV_miles = sum(PMT_SOV_NHB),
-             total_HOV_miles = sum(PMT_HOV_NHB))
+<!-- ```{r} -->
+<!-- PMT_walk_HBW <- skims %>% -->
+<!--   left_join(drive_dist, by = c("fromId", "toId")) %>% -->
+<!--   select(n_walk_HBW, miles) %>% -->
+<!--   mutate(PMT_walk_HBW = n_walk_HBW * miles, -->
+<!--          )%>% -->
+<!--   filter(is.na(PMT_walk_HBW) != TRUE) %>% -->
+<!--   summarize(total_walk_miles = sum(PMT_walk_HBW) -->
+<!--              ) -->
 
 
-PMT_car_NHB
+<!-- PMT_walk_HBW -->
+<!-- ``` -->
 
-#using parameter for NHB pm in NCHRP 716, Table 4-16
-VMT_NHB <- PMT_car_NHB$total_SOV_miles[1] + 
-       PMT_car_NHB$total_HOV_miles[1] / 1.65
-
-VMT_NHB
-```
-```{r}
-PMT_bike_NHB <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_bike_NHB, miles) %>%
-  mutate(PMT_bike_NHB = n_bike_NHB * miles,
-         )%>%
-  filter(is.na(PMT_bike_HBO) != TRUE) %>%
-  summarize(total_bike_miles = sum(PMT_bike_HBO)
-             )
+<!-- ## NHB -->
+<!-- ```{r} -->
+<!-- PMT_car_NHB <- skims %>% -->
+<!--   left_join(drive_dist, by = c("fromId", "toId")) %>% -->
+<!--   select(n_SOV_NHB, n_HOV_NHB, miles) %>% -->
+<!--   mutate(PMT_SOV_NHB = n_SOV_NHB * miles, -->
+<!--          PMT_HOV_NHB = n_HOV_NHB * miles)%>% -->
+<!--   # filter out NA values because those rows have 0 SOV and HOV trips -->
+<!--   filter(is.na(PMT_HOV_NHB) != TRUE & is.na(PMT_SOV_NHB) != TRUE) %>% -->
+<!--   summarize(total_SOV_miles = sum(PMT_SOV_NHB), -->
+<!--              total_HOV_miles = sum(PMT_HOV_NHB)) -->
 
 
-PMT_bike_NHB
-```
+<!-- PMT_car_NHB -->
 
-```{r}
-PMT_walk_NHB <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_walk_NHB, miles) %>%
-  mutate(PMT_walk_NHB = n_walk_NHB * miles,
-         )%>%
-  filter(is.na(PMT_walk_NHB) != TRUE) %>%
-  summarize(total_walk_miles = sum(PMT_walk_NHB)
-             )
+<!-- #using parameter for NHB pm in NCHRP 716, Table 4-16 -->
+<!-- VMT_NHB <- PMT_car_NHB$total_SOV_miles[1] +  -->
+<!--        PMT_car_NHB$total_HOV_miles[1] / 1.65 -->
+
+<!-- VMT_NHB -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- PMT_bike_NHB <- skims %>% -->
+<!--   left_join(drive_dist, by = c("fromId", "toId")) %>% -->
+<!--   select(n_bike_NHB, miles) %>% -->
+<!--   mutate(PMT_bike_NHB = n_bike_NHB * miles, -->
+<!--          )%>% -->
+<!--   filter(is.na(PMT_bike_HBO) != TRUE) %>% -->
+<!--   summarize(total_bike_miles = sum(PMT_bike_HBO) -->
+<!--              ) -->
 
 
-PMT_walk_NHB
-```
+<!-- PMT_bike_NHB -->
+<!-- ``` -->
 
-```{r}
-PMT_car <- rbind(PMT_car_HBO,PMT_car_HBW,PMT_car_NHB)
-PMT_bike <-rbind(PMT_bike_HBO,PMT_bike_HBW,PMT_bike_NHB)
-PMT_walk <-rbind(PMT_walk_HBO,PMT_walk_HBW,PMT_walk_NHB)
-#using parameter for all trips for all auto modes in NCHRP 716, Table 4-16
-VMT_all <- PMT_car$total_SOV_miles[1] + 
-       PMT_car$total_HOV_miles[1] / 1.5
-PMT_car
-PMT_bike
-PMT_walk
-```
+<!-- ```{r} -->
+<!-- PMT_walk_NHB <- skims %>% -->
+<!--   left_join(drive_dist, by = c("fromId", "toId")) %>% -->
+<!--   select(n_walk_NHB, miles) %>% -->
+<!--   mutate(PMT_walk_NHB = n_walk_NHB * miles, -->
+<!--          )%>% -->
+<!--   filter(is.na(PMT_walk_NHB) != TRUE) %>% -->
+<!--   summarize(total_walk_miles = sum(PMT_walk_NHB) -->
+<!--              ) -->
+
+
+<!-- PMT_walk_NHB -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- PMT_car <- rbind(PMT_car_HBO,PMT_car_HBW,PMT_car_NHB) -->
+<!-- PMT_bike <-rbind(PMT_bike_HBO,PMT_bike_HBW,PMT_bike_NHB) -->
+<!-- PMT_walk <-rbind(PMT_walk_HBO,PMT_walk_HBW,PMT_walk_NHB) -->
+<!-- #using parameter for all trips for all auto modes in NCHRP 716, Table 4-16 -->
+<!-- VMT_all <- PMT_car$total_SOV_miles[1] +  -->
+<!--        PMT_car$total_HOV_miles[1] / 1.5 -->
+<!-- PMT_car -->
+<!-- PMT_bike -->
+<!-- PMT_walk -->
+<!-- ``` -->
 
 #Find VMT & PMt - Alternative
 
@@ -643,168 +643,77 @@ bike_dist_alt <- detailed_itineraries(r5r_core_alternative,
 stop_r5() 
 ```
 
-## Calculate PMT by mode
-
-## HBO
+## Car - alternative
 
 ```{r}
-PMT_car_HBO_alt <- skims_alt %>%
+PMT_car_alt <- skims_alt %>%
   left_join(drive_dist_alt, by = c("fromId", "toId")) %>%
-  select(n_SOV_HBO, n_HOV_HBO, miles) %>%
+  select(n_SOV_HBO, n_HOV_HBO, 
+         n_SOV_HBW, n_HOV_HBW,
+         n_SOV_NHB, n_HOV_NHB, miles) %>%
   mutate(PMT_SOV_HBO_alt = n_SOV_HBO * miles,
-         PMT_HOV_HBO_alt = n_HOV_HBO * miles)%>%
-  # filter out NA values because those rows have 0 SOV and HOV trips
-  filter(is.na(PMT_HOV_HBO_alt) != TRUE & is.na(PMT_SOV_HBO_alt) != TRUE) %>%
-  summarize(total_SOV_miles_alt = sum(PMT_SOV_HBO_alt),
-             total_HOV_miles_alt = sum(PMT_HOV_HBO_alt))
+         PMT_HOV_HBO_alt = n_HOV_HBO * miles,
+         PMT_SOV_HBW_alt = n_SOV_HBW * miles,
+         PMT_HOV_HBW_alt = n_HOV_HBW * miles,
+         PMT_SOV_NHB_alt = n_SOV_NHB * miles,
+         PMT_HOV_NHB_alt = n_HOV_NHB * miles)%>%
 
-PMT_car_HBO_alt
+  summarize(total_SOV_miles_HBO_alt = sum(PMT_SOV_HBO_alt),
+            total_HOV_miles_HBO_alt = sum(PMT_HOV_HBO_alt),
+            total_SOV_miles_HBW_alt = sum(PMT_SOV_HBW_alt),
+            total_HOV_miles_HBW_alt = sum(PMT_HOV_HBW_alt),
+            total_SOV_miles_NHB_alt = sum(PMT_SOV_NHB_alt),
+            total_HOV_miles_NHB_alt = sum(PMT_HOV_NHB_alt))
+
+PMT_car_alt
 ```
 
+##calculating alternative VMT
 ```{r}
-#using parameter for HBO trips for 2-plus carpool (daily) in NCHRP 716, Table 4-16
-VMT_HBO_alt <- PMT_car_HBO_alt$total_SOV_miles_alt[1] + 
-       PMT_car_HBO_alt$total_HOV_miles_alt[1] / 2.71
+#using parameter for HBO pm in NCHRP 716, Table 4-16
+VMT_HBO_alt <- PMT_car_HBO_alt$total_SOV_miles_HBO_alt[1] + 
+       PMT_car_HBO_alt$total_HOV_miles_HBO_alt[1] / 2.71
+VMT_HBW_alt <- PMT_car_HBW_alt$total_SOV_miles_HBW_alt[1] + 
+       PMT_car_HBW_alt$total_HOV_miles_HBW_alt[1] / 2.42
+VMT_NHB_alt <- PMT_car_NHB_alt$total_SOV_miles_NHB_alt[1] + 
+       PMT_car_NHB_alt$total_HOV_miles_NHB_alt[1] / 1.66
 
 VMT_HBO_alt
+VMT_HBW_alt
+VMT_NHB_alt
 ```
 
+
+##Bike - alternative
 ```{r}
-PMT_bike_HBO_alt <- skims_alt %>%
-  left_join(drive_dist_alt, by = c("fromId", "toId")) %>%
-  select(n_bike_HBO, miles) %>%
+PMT_bike_alt <- skims_alt %>%
+  left_join(bike_dist_alt, by = c("fromId", "toId")) %>%
+  select(n_bike_HBO, n_bike_HBW, n_bike_NHB, miles) %>%
   mutate(PMT_bike_HBO_alt = n_bike_HBO * miles,
-         )%>%
-  # filter out NA values because those rows have 0 bike trips
-  filter(is.na(PMT_bike_HBO_alt) != TRUE) %>%
-  summarize(total_bike_miles_alt = sum(PMT_bike_HBO_alt)
+         PMT_bike_HBW_alt = n_bike_HBW * miles,
+         PMT_bike_NHB_alt = n_bike_NHB * miles)%>%
+ 
+  summarize(total_bike_miles_HBO_alt = sum(PMT_bike_HBO_alt),
+            total_bike_miles_HBW_alt = sum(PMT_bike_HBW_alt),
+            total_bike_miles_NHB_alt = sum(PMT_bike_NHB_alt)
              )
 
-PMT_bike_HBO
+PMT_bike_alt
 ```
 
+##Walk - alternative
 ```{r}
-PMT_walk_HBO_alt <- skims_alt %>%
+PMT_walk_alt <- skims_alt %>%
   left_join(ped_dist_alt, by = c("fromId", "toId")) %>%
-  select(n_walk_HBO, miles) %>%
-  mutate(PMT_walk_HBO = n_walk_HBO * miles,
-         )%>%
-  filter(is.na(PMT_walk_HBO) != TRUE) %>%
-  summarize(total_walk_miles = sum(PMT_walk_HBO)
-             )
+  select(n_walk_HBO, n_walk_HBW, n_walk_NHB, miles) %>%
+  mutate(PMT_walk_HBO_alt = n_walk_HBO * miles,
+         PMT_walk_HBO_alt = n_walk_HBO * miles,
+         PMT_walk_HBO_alt = n_walk_HBO * miles)%>%
+  
+  summarize(total_walk_miles_HBO_alt = sum(PMT_walk_HBO_alt),
+            total_walk_miles_HBW_alt = sum(PMT_walk_HBW_alt),
+            total_walk_miles_NHB_alt = sum(PMT_walk_NHB_alt))
 
-
-PMT_walk_HBO
-```
-
-## HBW
-```{r}
-PMT_car_HBW <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_SOV_HBW, n_HOV_HBW, miles) %>%
-  mutate(PMT_SOV_HBW = n_SOV_HBW * miles,
-         PMT_HOV_HBW = n_HOV_HBW * miles)%>%
-  # filter out NA values because those rows have 0 SOV and HOV trips
-  filter(is.na(PMT_HOV_HBW) != TRUE & is.na(PMT_SOV_HBW) != TRUE) %>%
-  summarize(total_SOV_miles = sum(PMT_SOV_HBW),
-             total_HOV_miles = sum(PMT_HOV_HBW))
-
-
-PMT_car_HBW
-
-#using parameter for HBW pm for all auto modes in NCHRP 716, Table 4-16
-VMT_HBW <- PMT_car_HBW$total_SOV_miles[1] + 
-       PMT_car_HBW$total_HOV_miles[1] / 1.11
-
-VMT_HBW
-```
-```{r}
-PMT_bike_HBW <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_bike_HBW, miles) %>%
-  mutate(PMT_bike_HBW = n_bike_HBW * miles,
-         )%>%
-  filter(is.na(PMT_bike_HBO) != TRUE) %>%
-  summarize(total_bike_miles = sum(PMT_bike_HBO)
-             )
-
-
-PMT_bike_HBW
-```
-
-```{r}
-PMT_walk_HBW <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_walk_HBW, miles) %>%
-  mutate(PMT_walk_HBW = n_walk_HBW * miles,
-         )%>%
-  filter(is.na(PMT_walk_HBW) != TRUE) %>%
-  summarize(total_walk_miles = sum(PMT_walk_HBW)
-             )
-
-
-PMT_walk_HBW
-```
-
-## NHB
-```{r}
-PMT_car_NHB <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_SOV_NHB, n_HOV_NHB, miles) %>%
-  mutate(PMT_SOV_NHB = n_SOV_NHB * miles,
-         PMT_HOV_NHB = n_HOV_NHB * miles)%>%
-  # filter out NA values because those rows have 0 SOV and HOV trips
-  filter(is.na(PMT_HOV_NHB) != TRUE & is.na(PMT_SOV_NHB) != TRUE) %>%
-  summarize(total_SOV_miles = sum(PMT_SOV_NHB),
-             total_HOV_miles = sum(PMT_HOV_NHB))
-
-
-PMT_car_NHB
-
-#using parameter for NHB pm in NCHRP 716, Table 4-16
-VMT_NHB <- PMT_car_NHB$total_SOV_miles[1] + 
-       PMT_car_NHB$total_HOV_miles[1] / 1.65
-
-VMT_NHB
-```
-```{r}
-PMT_bike_NHB <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_bike_NHB, miles) %>%
-  mutate(PMT_bike_NHB = n_bike_NHB * miles,
-         )%>%
-  filter(is.na(PMT_bike_HBO) != TRUE) %>%
-  summarize(total_bike_miles = sum(PMT_bike_HBO)
-             )
-
-
-PMT_bike_NHB
-```
-
-```{r}
-PMT_walk_NHB <- skims %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_walk_NHB, miles) %>%
-  mutate(PMT_walk_NHB = n_walk_NHB * miles,
-         )%>%
-  filter(is.na(PMT_walk_NHB) != TRUE) %>%
-  summarize(total_walk_miles = sum(PMT_walk_NHB)
-             )
-
-
-PMT_walk_NHB
-```
-
-
-```{r}
-PMT_car <- rbind(PMT_car_HBO,PMT_car_HBW,PMT_car_NHB)
-PMT_bike <-rbind(PMT_bike_HBO,PMT_bike_HBW,PMT_bike_NHB)
-PMT_walk <-rbind(PMT_walk_HBO,PMT_walk_HBW,PMT_walk_NHB)
-#using parameter for all trips for all auto modes in NCHRP 716, Table 4-16
-VMT_all <- PMT_car$total_SOV_miles[1] + 
-       PMT_car$total_HOV_miles[1] / 1.5
-PMT_car
-PMT_bike
 PMT_walk
 ```
 
