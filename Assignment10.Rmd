@@ -375,38 +375,38 @@ destinations <- origins %>%
 ```
 
 ```{r}
-r5r_core_existing <- here("existing",
-                          "networks") %>%
-  setup_r5(verbose = FALSE)
-
-ped_dist <- detailed_itineraries(r5r_core_existing,
-                                 origins = origins,
-                                 destinations = destinations,
-                                 mode = "WALK",
-                                 verbose = FALSE)  %>%
-  mutate(miles = distance / 1609.34) %>%
-  select(fromId, toId, miles) %>%
-  st_drop_geometry()
-
-drive_dist <- detailed_itineraries(r5r_core_existing,
-                                 origins = origins,
-                                 destinations = destinations,
-                                 mode = "CAR",
-                                 verbose = FALSE) %>%
-  mutate(miles = distance / 1609.34) %>%
-  select(fromId, toId, miles) %>%
-  st_drop_geometry()
-
-bike_dist <- detailed_itineraries(r5r_core_existing,
-                                 origins = origins,
-                                 destinations = destinations,
-                                 mode = "BICYCLE",
-                                 verbose = FALSE) %>%
-  mutate(miles = distance / 1609.34) %>%
-  select(fromId, toId, miles) %>%
-  st_drop_geometry()
-
-stop_r5()
+# r5r_core_existing <- here("existing",
+#                           "networks") %>%
+#   setup_r5(verbose = FALSE)
+# 
+# ped_dist <- detailed_itineraries(r5r_core_existing,
+#                                  origins = origins,
+#                                  destinations = destinations,
+#                                  mode = "WALK",
+#                                  verbose = FALSE)  %>%
+#   mutate(miles = distance / 1609.34) %>%
+#   select(fromId, toId, miles) %>%
+#   st_drop_geometry()
+# 
+# drive_dist <- detailed_itineraries(r5r_core_existing,
+#                                  origins = origins,
+#                                  destinations = destinations,
+#                                  mode = "CAR",
+#                                  verbose = FALSE) %>%
+#   mutate(miles = distance / 1609.34) %>%
+#   select(fromId, toId, miles) %>%
+#   st_drop_geometry()
+# 
+# bike_dist <- detailed_itineraries(r5r_core_existing,
+#                                  origins = origins,
+#                                  destinations = destinations,
+#                                  mode = "BICYCLE",
+#                                  verbose = FALSE) %>%
+#   mutate(miles = distance / 1609.34) %>%
+#   select(fromId, toId, miles) %>%
+#   st_drop_geometry()
+# 
+# stop_r5()
 ```
 
 ```{r}
@@ -414,22 +414,28 @@ bike_dist <- here("existing",
                      "data",
                      "bike_dist.csv") %>%
   read_csv(
-    show_col_types = FALSE
-    ) 
+    #show_col_types = FALSE
+    ) %>%
+  mutate(fromId = as.character(fromId),
+         toId = as.character(toId))
 
 drive_dist <- here("existing",
                      "data",
                      "drive_dist.csv") %>%
   read_csv(
-    show_col_types = FALSE
-    ) 
+    #show_col_types = FALSE
+    )  %>%
+  mutate(fromId = as.character(fromId),
+         toId = as.character(toId))
 
 ped_dist <- here("existing",
                      "data",
                      "ped_dist.csv") %>%
   read_csv(
-    show_col_types = FALSE
-    )
+    #show_col_types = FALSE
+    ) %>%
+  mutate(fromId = as.character(fromId),
+         toId = as.character(toId))
 ```
 
 ## Calculate PMT by mode
@@ -438,10 +444,8 @@ ped_dist <- here("existing",
 
 ```{r}
 PMT_car <- skims %>%
-  # mutate(fromId = as.double(fromId)) %>%
-  # mutate(toId = as.double(toId)) %>%
-  left_join(drive_dist, by = c("fromId", "toId")) %>%
-  select(n_SOV_HBO, n_HOV_HBO, 
+  left_join(drive_dist) %>%
+  select(n_SOV_HBO, n_HOV_HBO,
          n_SOV_HBW, n_HOV_HBW,
          n_SOV_NHB, n_HOV_NHB, miles) %>%
   mutate(PMT_SOV_HBO = n_SOV_HBO * miles,
@@ -469,12 +473,12 @@ PMT_car
 #using parameter for HBO, HBW and NHB for carpool- 2 plus only (daily trips) in NCHRP 716, Table 4-16
 VMT_HBO <- PMT_car$total_SOV_miles_HBO[1] + 
        PMT_car$total_HOV_miles_HBO[1] / 2.71
-VMT_HBW <- PMT_car$total_SOV_miles_HBW[1] + 
+VMT_HBO <- PMT_car$total_SOV_miles_HBW[1] + 
        PMT_car$total_HOV_miles_HBW[1] / 2.42
 VMT_NHB <- PMT_car$total_SOV_miles_NHB[1] + 
        PMT_car$total_HOV_miles_NHB[1] / 1.66
 
-mutate(VMT_sum = VMT_HBO + VMT_HBW + VMT_NHB)
+VMT_sum <- VMT_HBO + VMT_HBO + VMT_NHB
 
 VMT_HBO
 VMT_HBW
@@ -524,39 +528,40 @@ PMT_walk
 #Find VMT & PMt - Alternative
 
 ```{r}
-r5r_core_alternative <- here("alternative",
-                          "networks") %>%
-  setup_r5(verbose = FALSE)
+# r5r_core_alternative <- here("alternative",
+#                           "networks") %>%
+#   setup_r5(verbose = FALSE)
+# # 
+# # ped_dist_alt <- detailed_itineraries(r5r_core_alternative,
+# #                                  origins = origins,
+# #                                  destinations = destinations,
+# #                                  mode = "WALK",
+# #                                  verbose = FALSE)  %>%
+#   # mutate(miles = distance / 1609.34) %>%
+#   # select(fromId, toId, miles) %>%
+#   # st_drop_geometry()
 # 
-# ped_dist_alt <- detailed_itineraries(r5r_core_alternative,
+# # bike_dist_alt <- detailed_itineraries(r5r_core_alternative,
+# #                                  origins = origins,
+# #                                  destinations = destinations,
+# #                                  mode = "BICYCLE",
+# #                                  verbose = FALSE) %>%
+# #   mutate(miles = distance / 1609.34) %>%
+# #   select(fromId, toId, miles) %>%
+# #   st_drop_geometry()
+# 
+# drive_dist_alt <- detailed_itineraries(r5r_core_alternative,
 #                                  origins = origins,
 #                                  destinations = destinations,
-#                                  mode = "WALK",
-#                                  verbose = FALSE)  %>%
-  # mutate(miles = distance / 1609.34) %>%
-  # select(fromId, toId, miles) %>%
-  # st_drop_geometry()
-
-# bike_dist_alt <- detailed_itineraries(r5r_core_alternative,
-#                                  origins = origins,
-#                                  destinations = destinations,
-#                                  mode = "BICYCLE",
+#                                  mode = "CAR",
 #                                  verbose = FALSE) %>%
 #   mutate(miles = distance / 1609.34) %>%
 #   select(fromId, toId, miles) %>%
 #   st_drop_geometry()
-
-drive_dist_alt <- detailed_itineraries(r5r_core_alternative,
-                                 origins = origins,
-                                 destinations = destinations,
-                                 mode = "CAR",
-                                 verbose = FALSE) %>%
-  mutate(miles = distance / 1609.34) %>%
-  select(fromId, toId, miles) %>%
-  st_drop_geometry()
-
-stop_r5() 
+# 
+# stop_r5() 
 ```
+
 ```{r}
 write_csv(drive_dist_alt, here("alternative",
               "data",
@@ -725,5 +730,10 @@ hist +theme_bw(base_size = 11) +
 ggsave("images/transit_ridership_sum.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
+
+```{r}
+ridership_change 
+```
+
 
 
