@@ -372,38 +372,38 @@ destinations <- origins %>%
 ```
 
 ```{r}
-# r5r_core_existing <- here("existing",
-#                           "networks") %>%
-#   setup_r5(verbose = FALSE)
-# 
-# ped_dist <- detailed_itineraries(r5r_core_existing,
-#                                  origins = origins,
-#                                  destinations = destinations,
-#                                  mode = "WALK",
-#                                  verbose = FALSE)  %>%
-#   mutate(miles = distance / 1609.34) %>%
-#   select(fromId, toId, miles) %>%
-#   st_drop_geometry()
-# 
-# drive_dist <- detailed_itineraries(r5r_core_existing,
-#                                  origins = origins,
-#                                  destinations = destinations,
-#                                  mode = "CAR",
-#                                  verbose = FALSE) %>%
-#   mutate(miles = distance / 1609.34) %>%
-#   select(fromId, toId, miles) %>%
-#   st_drop_geometry()
-# 
-# bike_dist <- detailed_itineraries(r5r_core_existing,
-#                                  origins = origins,
-#                                  destinations = destinations,
-#                                  mode = "BICYCLE",
-#                                  verbose = FALSE) %>%
-#   mutate(miles = distance / 1609.34) %>%
-#   select(fromId, toId, miles) %>%
-#   st_drop_geometry()
-# 
-# stop_r5() 
+r5r_core_existing <- here("existing",
+                          "networks") %>%
+  setup_r5(verbose = FALSE)
+
+ped_dist <- detailed_itineraries(r5r_core_existing,
+                                 origins = origins,
+                                 destinations = destinations,
+                                 mode = "WALK",
+                                 verbose = FALSE)  %>%
+  mutate(miles = distance / 1609.34) %>%
+  select(fromId, toId, miles) %>%
+  st_drop_geometry()
+
+drive_dist <- detailed_itineraries(r5r_core_existing,
+                                 origins = origins,
+                                 destinations = destinations,
+                                 mode = "CAR",
+                                 verbose = FALSE) %>%
+  mutate(miles = distance / 1609.34) %>%
+  select(fromId, toId, miles) %>%
+  st_drop_geometry()
+
+bike_dist <- detailed_itineraries(r5r_core_existing,
+                                 origins = origins,
+                                 destinations = destinations,
+                                 mode = "BICYCLE",
+                                 verbose = FALSE) %>%
+  mutate(miles = distance / 1609.34) %>%
+  select(fromId, toId, miles) %>%
+  st_drop_geometry()
+
+stop_r5()
 ```
 
 ```{r}
@@ -435,8 +435,8 @@ ped_dist <- here("existing",
 
 ```{r}
 PMT_car <- skims %>%
-  mutate(fromId = as.double(fromId)) %>%
-  mutate(toId = as.double(toId)) %>%
+  # mutate(fromId = as.double(fromId)) %>%
+  # mutate(toId = as.double(toId)) %>%
   left_join(drive_dist, by = c("fromId", "toId")) %>%
   select(n_SOV_HBO, n_HOV_HBO, 
          n_SOV_HBW, n_HOV_HBW,
@@ -447,10 +447,10 @@ PMT_car <- skims %>%
          PMT_HOV_HBW = n_HOV_HBW * miles,
          PMT_SOV_NHB = n_SOV_NHB * miles,
          PMT_HOV_NHB = n_HOV_NHB * miles)%>%
-  # # filter out NA values because those rows have 0 SOV and HOV trips
-  # filter(is.na(PMT_HOV_HBO) != TRUE & is.na(PMT_SOV_HBO) != TRUE) %>%
-  # filter(is.na(PMT_HOV_HBW) != TRUE & is.na(PMT_SOV_HBW) != TRUE) %>%
-  # filter(is.na(PMT_HOV_NHB) != TRUE & is.na(PMT_SOV_NHB) != TRUE) %>%
+  # filter out NA values because those rows have 0 SOV and HOV trips
+  filter(is.na(PMT_HOV_HBO) != TRUE & is.na(PMT_SOV_HBO) != TRUE) %>%
+  filter(is.na(PMT_HOV_HBW) != TRUE & is.na(PMT_SOV_HBW) != TRUE) %>%
+  filter(is.na(PMT_HOV_NHB) != TRUE & is.na(PMT_SOV_NHB) != TRUE) %>%
   summarize(total_SOV_miles_HBO = sum(PMT_SOV_HBO),
             total_HOV_miles_HBO = sum(PMT_HOV_HBO),
             total_SOV_miles_HBW = sum(PMT_SOV_HBW),
@@ -463,17 +463,20 @@ PMT_car
 
 ##calculating existing VMT
 ```{r}
-#using parameter for HBO pm in NCHRP 716, Table 4-16
-VMT_HBO <- PMT_car_HBO$total_SOV_miles_HBO[1] + 
-       PMT_car_HBO$total_HOV_miles_HBO[1] / 2.71
-VMT_HBW <- PMT_car_HBW$total_SOV_miles_HBW[1] + 
-       PMT_car_HBW$total_HOV_miles_HBW[1] / 2.42
-VMT_NHB <- PMT_car_NHB$total_SOV_miles_NHB[1] + 
-       PMT_car_NHB$total_HOV_miles_NHB[1] / 1.66
+#using parameter for HBO, HBW and NHB for carpool- 2 plus only (daily trips) in NCHRP 716, Table 4-16
+VMT_HBO <- PMT_car$total_SOV_miles_HBO[1] + 
+       PMT_car$total_HOV_miles_HBO[1] / 2.71
+VMT_HBW <- PMT_car$total_SOV_miles_HBW[1] + 
+       PMT_car$total_HOV_miles_HBW[1] / 2.42
+VMT_NHB <- PMT_car$total_SOV_miles_NHB[1] + 
+       PMT_car$total_HOV_miles_NHB[1] / 1.66
+
+mutate(VMT_sum = VMT_HBO + VMT_HBW + VMT_NHB)
 
 VMT_HBO
 VMT_HBW
 VMT_NHB
+VMT_sum
 ```
 
 
@@ -503,11 +506,11 @@ PMT_walk <- skims %>%
   left_join(ped_dist, by = c("fromId", "toId")) %>%
   select(n_walk_HBO, n_walk_HBW, n_walk_NHB, miles) %>%
   mutate(PMT_walk_HBO = n_walk_HBO * miles,
-         PMT_walk_HBO = n_walk_HBO * miles,
-         PMT_walk_HBO = n_walk_HBO * miles)%>%
+         PMT_walk_HBW = n_walk_HBW * miles,
+         PMT_walk_NHB = n_walk_NHB * miles)%>%
   filter(is.na(PMT_walk_HBO) != TRUE) %>%
-  filter(is.na(PMT_walk_HBO) != TRUE) %>%
-  filter(is.na(PMT_walk_HBO) != TRUE) %>%
+  filter(is.na(PMT_walk_HBW) != TRUE) %>%
+  filter(is.na(PMT_walk_NHB) != TRUE) %>%
   summarize(total_walk_miles_HBO = sum(PMT_walk_HBO),
             total_walk_miles_HBW = sum(PMT_walk_HBW),
             total_walk_miles_NHB = sum(PMT_walk_NHB))
@@ -518,18 +521,18 @@ PMT_walk
 #Find VMT & PMt - Alternative
 
 ```{r}
-r5r_core_alternative <- here("alternative",
-                          "networks") %>%
-  setup_r5(verbose = FALSE)
-
-ped_dist_alt <- detailed_itineraries(r5r_core_alternative,
-                                 origins = origins,
-                                 destinations = destinations,
-                                 mode = "WALK",
-                                 verbose = FALSE)  %>%
-  mutate(miles = distance / 1609.34) %>%
-  select(fromId, toId, miles) %>%
-  st_drop_geometry()
+# r5r_core_alternative <- here("alternative",
+#                           "networks") %>%
+#   setup_r5(verbose = FALSE)
+# 
+# ped_dist_alt <- detailed_itineraries(r5r_core_alternative,
+#                                  origins = origins,
+#                                  destinations = destinations,
+#                                  mode = "WALK",
+#                                  verbose = FALSE)  %>%
+  # mutate(miles = distance / 1609.34) %>%
+  # select(fromId, toId, miles) %>%
+  # st_drop_geometry()
 
 bike_dist_alt <- detailed_itineraries(r5r_core_alternative,
                                  origins = origins,
@@ -580,20 +583,23 @@ PMT_car_alt
 ##calculating alternative VMT
 ```{r}
 #using parameter for HBO pm in NCHRP 716, Table 4-16
-VMT_HBO_alt <- PMT_car_HBO_alt$total_SOV_miles_HBO_alt[1] + 
-       PMT_car_HBO_alt$total_HOV_miles_HBO_alt[1] / 2.71
-VMT_HBW_alt <- PMT_car_HBW_alt$total_SOV_miles_HBW_alt[1] + 
-       PMT_car_HBW_alt$total_HOV_miles_HBW_alt[1] / 2.42
-VMT_NHB_alt <- PMT_car_NHB_alt$total_SOV_miles_NHB_alt[1] + 
-       PMT_car_NHB_alt$total_HOV_miles_NHB_alt[1] / 1.66
+VMT_HBO_alt <- PMT_car_alt$total_SOV_miles_HBO_alt[1] + 
+       PMT_car_alt$total_HOV_miles_HBO_alt[1] / 2.71
+VMT_HBW_alt <- PMT_car_alt$total_SOV_miles_HBW_alt[1] + 
+       PMT_car_alt$total_HOV_miles_HBW_alt[1] / 2.42
+VMT_NHB_alt <- PMT_car_alt$total_SOV_miles_NHB_alt[1] + 
+       PMT_car_alt$total_HOV_miles_NHB_alt[1] / 1.66
 
 VMT_HBO_alt
 VMT_HBW_alt
 VMT_NHB_alt
+
+mutate(VMT_sum_alt = VMT_HBO_alt + VMT_HBW_alt + VMT_NHB_alt)
+VMT_sum_alt
 ```
 
-
 ##Bike - alternative
+
 ```{r}
 PMT_bike_alt <- skims_alt %>%
   left_join(bike_dist_alt, by = c("fromId", "toId")) %>%
@@ -601,7 +607,10 @@ PMT_bike_alt <- skims_alt %>%
   mutate(PMT_bike_HBO_alt = n_bike_HBO * miles,
          PMT_bike_HBW_alt = n_bike_HBW * miles,
          PMT_bike_NHB_alt = n_bike_NHB * miles)%>%
- 
+    # filter out NA values because those rows have 0 bike trips
+  filter(is.na(PMT_bike_HBO_alt) != TRUE) %>%
+  filter(is.na(PMT_bike_HBW_alt) != TRUE) %>%
+  filter(is.na(PMT_bike_NHB_alt) != TRUE) %>%
   summarize(total_bike_miles_HBO_alt = sum(PMT_bike_HBO_alt),
             total_bike_miles_HBW_alt = sum(PMT_bike_HBW_alt),
             total_bike_miles_NHB_alt = sum(PMT_bike_NHB_alt)
@@ -616,14 +625,16 @@ PMT_walk_alt <- skims_alt %>%
   left_join(ped_dist_alt, by = c("fromId", "toId")) %>%
   select(n_walk_HBO, n_walk_HBW, n_walk_NHB, miles) %>%
   mutate(PMT_walk_HBO_alt = n_walk_HBO * miles,
-         PMT_walk_HBO_alt = n_walk_HBO * miles,
-         PMT_walk_HBO_alt = n_walk_HBO * miles)%>%
-  
+         PMT_walk_HBW_alt = n_walk_HBW * miles,
+         PMT_walk_NHB_alt = n_walk_NHB * miles)%>%
+  filter(is.na(PMT_walk_HBO_alt) != TRUE) %>%
+  filter(is.na(PMT_walk_HBW_alt) != TRUE) %>%
+  filter(is.na(PMT_walk_NHB_alt) != TRUE) %>%
   summarize(total_walk_miles_HBO_alt = sum(PMT_walk_HBO_alt),
             total_walk_miles_HBW_alt = sum(PMT_walk_HBW_alt),
             total_walk_miles_NHB_alt = sum(PMT_walk_NHB_alt))
 
-PMT_walk
+PMT_walk_alt
 ```
 
 #Save files
