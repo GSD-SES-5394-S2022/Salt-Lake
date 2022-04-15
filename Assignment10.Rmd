@@ -683,6 +683,9 @@ write_csv(PMT_walk_alt, here("alternative",
               "PMT_walk_alt.csv"))
 ```
 
+
+## Visuals 
+
 ```{r}
 hist <- ggplot(route_trip_by_purpose, aes(x=ridership_HBO)) + 
   geom_histogram(color = "white", fill = 'lightblue')
@@ -731,6 +734,7 @@ hist +theme_bw(base_size = 11) +
 ggsave("images/transit_ridership_sum.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
+
 
 ```{r}
 ridership_change 
