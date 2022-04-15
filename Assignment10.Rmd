@@ -564,17 +564,17 @@ PMT_walk
 ```
 
 ```{r}
-write_csv(drive_dist_alt, here("alternative",
-              "data",
-              "drive_dist_alt.csv"))
-
-write_csv(ped_dist_alt, here("alternative",
-              "data",
-              "ped_dist_alt.csv"))
-
-write_csv(drive_dist_alt, here("alternative",
-              "data",
-              "drive_dist_alt.csv"))
+# write_csv(drive_dist_alt, here("alternative",
+#               "data",
+#               "drive_dist_alt.csv"))
+# 
+# write_csv(ped_dist_alt, here("alternative",
+#               "data",
+#               "ped_dist_alt.csv"))
+# 
+# write_csv(drive_dist_alt, here("alternative",
+#               "data",
+#               "drive_dist_alt.csv"))
 
 ```
 
@@ -606,6 +606,8 @@ ped_dist_alt <- here("alternative",
   mutate(fromId = as.character(fromId),
          toId = as.character(toId))
 ```
+
+
 
 ## Car - alternative
 
@@ -905,6 +907,138 @@ map <- ggplot(zones) +
 
 map
 ggsave("images/VMT_car_all_existing.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+## alternative
+```{r}
+
+map_data_PMT_bike <- skims_alt %>%
+  left_join(bike_dist_alt, by = c("fromId", "toId")) %>%
+  select(fromId,toId,n_bike_HBO,
+         n_bike_HBW, 
+         n_bike_NHB, miles) %>%
+  mutate(PMT_bike_HBO = n_bike_HBO * miles,
+         PMT_bike_HBW = n_bike_HBW * miles,
+         PMT_bike_NHB = n_bike_NHB * miles)%>%
+  group_by(fromId) %>%
+  summarise(PMT_bike_HBO=sum(PMT_bike_HBO),
+            PMT_bike_HBW=sum(PMT_bike_HBW),
+            PMT_bike_NHB=sum(PMT_bike_NHB),
+            PMT_bike_all = sum(PMT_bike_HBO,PMT_bike_HBW,PMT_bike_NHB))%>%
+  select(fromId,PMT_bike_HBO,PMT_bike_HBW,PMT_bike_NHB,PMT_bike_all ) %>%
+ mutate(GEOID = as.character(fromId)) 
+# filter(fromId != 49035110104 & fromId != 49035114800 & fromId != 49035100200)
+
+
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read()%>%
+inner_join(map_data_PMT_bike)
+```
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = PMT_bike_all),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "PMT of bike mode \nfor all trips from tracts\n in dist_alt scenario") +
+  theme_void()
+
+map
+ggsave("images/PMT_bike_all_dist_alt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+```{r}
+map_data_PMT_walk <- skims_alt %>%
+  left_join(ped_dist_alt, by = c("fromId", "toId")) %>%
+  select(fromId,toId,n_walk_HBO,
+         n_walk_HBW, 
+         n_walk_NHB, miles) %>%
+  mutate(PMT_ped_HBO = n_walk_HBO * miles,
+         PMT_ped_HBW = n_walk_HBW * miles,
+         PMT_ped_NHB = n_walk_NHB * miles)%>%
+filter(is.na(PMT_ped_HBO)== FALSE |is.na(PMT_ped_HBW)== FALSE| is.na(PMT_ped_HBW)== FALSE)%>%
+group_by(fromId) %>%
+summarise(PMT_ped_HBO=sum(PMT_ped_HBO),
+          PMT_ped_HBW=sum(PMT_ped_HBW),
+          PMT_ped_NHB=sum(PMT_ped_NHB),
+          PMT_ped_all = sum(PMT_ped_HBO,PMT_ped_HBW,PMT_ped_NHB))%>%
+ select(fromId,PMT_ped_HBO,PMT_ped_HBW,PMT_ped_NHB,PMT_ped_all ) %>%
+mutate(GEOID = as.character(fromId))
+
+
+
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read()%>%
+inner_join(map_data_PMT_walk)
+```
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = PMT_ped_all),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "PMT of walk mode \nfor all trips from tracts\n in dist_alt scenario") +
+  theme_void()
+
+map
+ggsave("images/PMT_ped_all_dist_alt.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+
+```{r}
+map_data_VMT_car <- skims_alt %>%
+  left_join(drive_dist_alt, by = c("fromId", "toId")) %>%
+  select(fromId,toId,n_SOV_HBO, n_HOV_HBO, 
+         n_SOV_HBW, n_HOV_HBW,
+         n_SOV_NHB, n_HOV_NHB, miles) %>%
+  mutate(PMT_SOV_HBO = n_SOV_HBO * miles,
+         PMT_HOV_HBO = n_HOV_HBO * miles,
+         PMT_SOV_HBW = n_SOV_HBW * miles,
+         PMT_HOV_HBW = n_HOV_HBW * miles,
+         PMT_SOV_NHB = n_SOV_NHB * miles,
+         PMT_HOV_NHB = n_HOV_NHB * miles)%>%
+  mutate(VMT_HBO = PMT_SOV_HBO + PMT_HOV_HBO/2.71,
+         VMT_HBW = PMT_SOV_HBW + PMT_HOV_HBW/2.42,
+         VMT_NHB = PMT_SOV_NHB + PMT_HOV_NHB/1.66
+         )%>%
+  group_by(fromId) %>%
+  summarise(VMT_HBO=sum(VMT_HBO),
+          VMT_HBW=sum(VMT_HBW),
+          VMT_NHB=sum(VMT_NHB),
+          VMT_all = sum(VMT_HBO,VMT_HBW,VMT_NHB))%>%
+  select(fromId,VMT_HBO,VMT_HBW,VMT_NHB,VMT_all) %>%
+ mutate(GEOID = as.character(fromId),
+        VMT_all = round(VMT_all))
+
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read()%>%
+inner_join(map_data_VMT_car)
+```
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+options(scipen=999)
+
+map <- ggplot(zones) +
+  geom_sf(aes(fill = VMT_all),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
+                       name = "VMT of car mode \nfor all trips from tracts\n in dist_alt scenario") +
+  theme_void()
+
+map
+ggsave("images/VMT_car_all_dist_alt.png",
        width = 20, height = 15, units = "cm",dpi = 300)
 ```
 
