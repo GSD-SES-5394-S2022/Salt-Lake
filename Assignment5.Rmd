@@ -359,6 +359,37 @@ map_alternative_ratio <- ggplot(zones) +
   geom_sf(aes(fill = ratio),
           color = NA) +
   scale_fill_gradientn(colours = map_palette,
+                       name = "Car to transit access\nratio (existing)", 
+                       label=scales::comma) +
+  theme_void()
+
+map_alternative_ratio
+ggsave("images/map_exsiting_ratio_blowup.png",
+       width = 20, height = 15, units = "cm",dpi = 300)
+```
+```{r}
+ratio <- here("alternative",
+             "data",
+             "access_compare_alt.csv") %>%
+  read_csv() %>%
+  mutate(GEOID = as.character(GEOID))%>%
+  filter(GEOID != "49045130600")
+
+
+zones <- here("zones",
+              "boundaries.geojson") %>%
+  st_read()%>%
+  inner_join(ratio)
+```
+
+```{r}
+map_palette <- brewer.pal(5, "PuBuGn")
+
+
+map_alternative_ratio <- ggplot(zones) +
+  geom_sf(aes(fill = ratio),
+          color = NA) +
+  scale_fill_gradientn(colours = map_palette,
                        name = "Car to transit access\nratio (alternative)", 
                        label=scales::comma) +
   theme_void()
