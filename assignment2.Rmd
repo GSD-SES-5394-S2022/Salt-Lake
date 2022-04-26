@@ -257,18 +257,19 @@ zones <- zones %>%
 
 #Creating chloropleth maps for household, income and employment data
 ```{r}
-total_hh_map <- ggplot(zones) +
-  geom_sf(aes(fill = as.numeric(total_hh_density)), color="NA")
+
+avg_hh_map <- ggplot(zones) +
+  geom_sf(aes(fill = as.numeric(avg_hh_size)), color="NA")
 
 map_palette <- brewer.pal(5, "PuBuGn")
 
-total_hh_map + 
+avg_hh_map + 
 theme_void(base_size = 11) +
 scale_fill_gradientn(colors = map_palette,  
-                     name = "Density of households/mile^2") 
+                     name = "Average households size") 
 
-ggsave("images/total_hh_map.png",
-       width = 417.67, height = 200, units = "mm",dpi = 300)
+ggsave("images/avg_hhsize_map.png",
+       width = 40, height = 20, units = "mm",dpi = 300)
 ```
 
 ```{r}
