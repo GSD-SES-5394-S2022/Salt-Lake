@@ -259,7 +259,7 @@ zones <- zones %>%
 ```{r}
 
 avg_hh_map <- ggplot(zones) +
-  geom_sf(aes(fill = as.numeric(avg_hh_size)), color="NA")
+  geom_sf(aes(fill = as.numeric(avg_hh_sizeE)), color="NA")
 
 map_palette <- brewer.pal(5, "PuBuGn")
 
